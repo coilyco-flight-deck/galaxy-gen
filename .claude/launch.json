@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "galaxy-gen",
+      "runtimeExecutable": "make",
+      "runtimeArgs": ["dev"],
+      "port": 8080
+    }
+  ]
+}
