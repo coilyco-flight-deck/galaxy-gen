@@ -3,8 +3,8 @@ target/
 dist/
 pkg/
 node_modules/
-.claude/
-
+.claude/settings.local.json
+.claude/worktrees/
 # Playwright
 playwright-report/
 test-results/
