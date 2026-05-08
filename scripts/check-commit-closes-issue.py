@@ -20,6 +20,7 @@ Exempt: Merge / Revert / fixup! / squash! commits.
 Exits 0 on accept, 1 on reject (with a dictation-friendly error
 that names the fix to apply from a phone).
 """
+
 from __future__ import annotations
 
 import re
@@ -45,7 +46,8 @@ def this_repo() -> tuple[str, str] | None:
     try:
         out = subprocess.check_output(
             ["git", "config", "--get", "remote.origin.url"],
-            text=True, stderr=subprocess.DEVNULL,
+            text=True,
+            stderr=subprocess.DEVNULL,
         ).strip()
     except (subprocess.CalledProcessError, FileNotFoundError):
         return None

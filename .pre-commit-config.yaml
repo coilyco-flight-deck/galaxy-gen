@@ -19,6 +19,7 @@ repos:
         stages: [prepare-commit-msg]
         always_run: true
         require_serial: true
+  
   # BEGIN managed by coilyco-ai/scripts/apply-commit-msg-hook.py
   - repo: local
     hooks:
