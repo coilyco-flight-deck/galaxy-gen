@@ -19,3 +19,13 @@ repos:
         stages: [prepare-commit-msg]
         always_run: true
         require_serial: true
+  # BEGIN managed by coilyco-ai/scripts/apply-commit-msg-hook.py
+  - repo: local
+    hooks:
+      - id: closes-issue
+        name: commit closes a GitHub issue
+        description: Reject commit messages without a GitHub closing keyword (closes/fixes/resolves #N).
+        entry: python3 scripts/check-commit-closes-issue.py
+        language: system
+        stages: [commit-msg]
+  # END managed by coilyco-ai/scripts/apply-commit-msg-hook.py
