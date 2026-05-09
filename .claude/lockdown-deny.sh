@@ -76,7 +76,7 @@ check_segment() {
       ;;
   esac
   case "$seg" in
-    "aws"|"aws "*) printf 'lockdown: blocked by deny rule: aws\n' >&2; exit 2 ;;
+    "aws"|"aws "*) printf 'lockdown: blocked by deny rule: aws. Recovery: use `coily ops aws ...` (audited wrapper).\n' >&2; exit 2 ;;
     "bash"|"bash "*) printf 'lockdown: blocked by deny rule: bash\n' >&2; exit 2 ;;
     "brew"|"brew "*) printf 'lockdown: blocked by deny rule: brew\n' >&2; exit 2 ;;
     "bun"|"bun "*) printf 'lockdown: blocked by deny rule: bun\n' >&2; exit 2 ;;
@@ -88,13 +88,13 @@ check_segment() {
     "cscript.exe"|"cscript.exe "*) printf 'lockdown: blocked by deny rule: cscript.exe\n' >&2; exit 2 ;;
     "dash"|"dash "*) printf 'lockdown: blocked by deny rule: dash\n' >&2; exit 2 ;;
     "deno"|"deno "*) printf 'lockdown: blocked by deny rule: deno\n' >&2; exit 2 ;;
-    "docker"|"docker "*) printf 'lockdown: blocked by deny rule: docker\n' >&2; exit 2 ;;
+    "docker"|"docker "*) printf 'lockdown: blocked by deny rule: docker. Recovery: use `coily docker ...` (audited wrapper).\n' >&2; exit 2 ;;
     "env"|"env "*) printf 'lockdown: blocked by deny rule: env\n' >&2; exit 2 ;;
     "exec"|"exec "*) printf 'lockdown: blocked by deny rule: exec\n' >&2; exit 2 ;;
     "fish"|"fish "*) printf 'lockdown: blocked by deny rule: fish\n' >&2; exit 2 ;;
     "gcloud"|"gcloud "*) printf 'lockdown: blocked by deny rule: gcloud\n' >&2; exit 2 ;;
     "gem"|"gem "*) printf 'lockdown: blocked by deny rule: gem\n' >&2; exit 2 ;;
-    "gh"|"gh "*) printf 'lockdown: blocked by deny rule: gh\n' >&2; exit 2 ;;
+    "gh"|"gh "*) printf 'lockdown: blocked by deny rule: gh. Recovery: use `coily ops gh ...` (audited wrapper).\n' >&2; exit 2 ;;
     "git clean -fd"|"git clean -fd "*) printf 'lockdown: blocked by deny rule: git clean -fd\n' >&2; exit 2 ;;
     "git push --force"|"git push --force "*) printf 'lockdown: blocked by deny rule: git push --force\n' >&2; exit 2 ;;
     "git push -f"|"git push -f "*) printf 'lockdown: blocked by deny rule: git push -f\n' >&2; exit 2 ;;
@@ -104,7 +104,7 @@ check_segment() {
     "invoke"|"invoke "*) printf 'lockdown: blocked by deny rule: invoke\n' >&2; exit 2 ;;
     "just"|"just "*) printf 'lockdown: blocked by deny rule: just\n' >&2; exit 2 ;;
     "ksh"|"ksh "*) printf 'lockdown: blocked by deny rule: ksh\n' >&2; exit 2 ;;
-    "kubectl"|"kubectl "*) printf 'lockdown: blocked by deny rule: kubectl\n' >&2; exit 2 ;;
+    "kubectl"|"kubectl "*) printf 'lockdown: blocked by deny rule: kubectl. Recovery: use `coily ops kubectl ...` (audited wrapper).\n' >&2; exit 2 ;;
     "make"|"make "*) printf 'lockdown: blocked by deny rule: make\n' >&2; exit 2 ;;
     "mshta"|"mshta "*) printf 'lockdown: blocked by deny rule: mshta\n' >&2; exit 2 ;;
     "mshta.exe"|"mshta.exe "*) printf 'lockdown: blocked by deny rule: mshta.exe\n' >&2; exit 2 ;;
@@ -133,7 +133,7 @@ check_segment() {
     "sh"|"sh "*) printf 'lockdown: blocked by deny rule: sh\n' >&2; exit 2 ;;
     "ssh"|"ssh "*) printf 'lockdown: blocked by deny rule: ssh\n' >&2; exit 2 ;;
     "sshfs"|"sshfs "*) printf 'lockdown: blocked by deny rule: sshfs\n' >&2; exit 2 ;;
-    "tailscale"|"tailscale "*) printf 'lockdown: blocked by deny rule: tailscale\n' >&2; exit 2 ;;
+    "tailscale"|"tailscale "*) printf 'lockdown: blocked by deny rule: tailscale. Recovery: use `coily tailscale ...` (audited wrapper).\n' >&2; exit 2 ;;
     "task"|"task "*) printf 'lockdown: blocked by deny rule: task\n' >&2; exit 2 ;;
     "terraform"|"terraform "*) printf 'lockdown: blocked by deny rule: terraform\n' >&2; exit 2 ;;
     "tflint"|"tflint "*) printf 'lockdown: blocked by deny rule: tflint\n' >&2; exit 2 ;;

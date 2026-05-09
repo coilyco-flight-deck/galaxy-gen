@@ -1,0 +1,45 @@
+# Per-repo command allowlist for galaxy-gen. Coily is the canonical entry
+# point for dev verbs here; each command below delegates to a Make target
+# that wraps cargo / wasm-pack / npx / playwright.
+#
+# Names follow coily's [a-z0-9-] rule. Argv validation rejects shell
+# metacharacters at invocation time, so flags forward verbatim through
+# coily's user-extras mechanism.
+
+commands:
+  install:
+    run: make install
+    description: Install Rust, WASM, and JS deps (cargo build + wasm-pack + npm install + playwright install).
+  test-rust:
+    run: make test-rust
+    description: cargo check + cargo test.
+  build-rust:
+    run: make build-rust
+    description: Build Rust + WASM (debug).
+  build-wasm:
+    run: make build-wasm
+    description: Compile Rust to WASM via wasm-pack (pkg/).
+  build-js-prod:
+    run: make build-js-prod
+    description: Production webpack build.
+  dev:
+    run: make dev
+    description: Run the rust/wasm watcher and webpack-dev-server concurrently with auto-reload.
+  dev-js:
+    run: make dev-js
+    description: Run only the JS dev server with HMR.
+  dev-rust:
+    run: make dev-rust
+    description: Run only the Rust/WASM watcher.
+  test-e2e:
+    run: make test-e2e
+    description: Run Playwright end-to-end tests.
+  test-e2e-ui:
+    run: make test-e2e-ui
+    description: Run Playwright tests in UI mode.
+  build-docker:
+    run: make build-docker
+    description: Build the docker image locally with BuildKit cache.
+  publish:
+    run: make publish
+    description: Tag and push the docker image to ghcr.io.
