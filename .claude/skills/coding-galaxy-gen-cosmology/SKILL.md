@@ -1,6 +1,6 @@
 ---
 name: coding-galaxy-gen-cosmology
-description: Cosmology and relativity design reference for coilysiren/galaxy-gen (procedural galaxy sim, Rust to WASM, browser-rendered). Cosmological-scale physics that bounds the sim's universe-level choices - Hubble flow, FLRW expansion, redshift, dark matter, dark energy, gravitational physics, large-scale structure, CMB. Sister to the galaxy-scale physics skill. Use when designing the scene's largest scale (single galaxy vs. universe), redshift-dependent color, distance ladders, cosmic web placement, or any choice that touches the universe's geometry and timeline. Triggers - galaxy-gen, cosmology, FLRW, Hubble's law, redshift, dark energy, dark matter, cosmic microwave background, CMB, large-scale structure, cosmic web, gravitational lensing, Schwarzschild, black hole, general relativity, special relativity, lookback time, comoving distance.
+description: Cosmology and relativity for the procedural galaxy sim. Universe-scale physics - Hubble flow, FLRW, redshift, dark sector, gravitational physics, CMB. Sister to the galaxy-scale skill. Triggers - cosmology, FLRW, Hubble's law, redshift, dark energy, dark matter, CMB, cosmic web, gravitational lensing, Schwarzschild, black hole, general relativity, lookback time, comoving distance.
 ---
 
 # Cosmology for galaxy-gen

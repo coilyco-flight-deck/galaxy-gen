@@ -1,6 +1,6 @@
 ---
 name: coding-galaxy-gen-astrophysics
-description: Astrophysics design reference for coilysiren/galaxy-gen (procedural galaxy sim, Rust to WASM, browser-rendered). Galaxy-scale physics that bounds modeling choices - morphology types, mass distribution, rotation curves, star formation, stellar populations, AGN, mergers. Use when designing the data model, sampling distributions, particle/field representations, color/luminosity output, or anything where physical plausibility matters. Triggers - galaxy-gen, galaxy generation, procedural galaxy, galaxy morphology, spiral arms, elliptical, rotation curve, dark matter halo, stellar population, IMF, initial mass function, HR diagram, star formation, AGN, supermassive black hole, galaxy merger, Hubble sequence, Tully-Fisher.
+description: Galaxy-scale astrophysics for the procedural galaxy sim. Morphology, mass distribution, rotation curves, star formation, stellar populations, AGN, mergers. Triggers - galaxy generation, galaxy morphology, spiral arms, elliptical, rotation curve, dark matter halo, IMF, HR diagram, star formation, AGN, supermassive black hole, galaxy merger, Hubble sequence, Tully-Fisher.
 ---
 
 # Astrophysics for galaxy-gen

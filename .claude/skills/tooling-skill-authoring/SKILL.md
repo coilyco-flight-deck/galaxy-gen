@@ -1,6 +1,6 @@
 ---
 name: tooling-skill-authoring
-description: Skill-authoring discipline for the galaxy-gen repo. Local rules, local categories.yaml, hooks consumed via pre-commit from claude-skill-discipline. Use when adding, editing, or removing a skill under .claude/skills/, when a pre-commit hook fails on skill conventions or dead cross-links, when the categories spec needs a new prefix, or when explaining the gating story. Triggers - skill, SKILL.md, frontmatter, categories.yaml, validate_skills, check_dead_links, .claude/skills, skill authoring, skill hygiene, skill discipline, add skill, new skill, skill prefix.
+description: Skill-authoring discipline for this repo. Local categories.yaml, hooks from claude-skill-discipline. Triggers - skill, SKILL.md, frontmatter, categories.yaml, .claude/skills, skill authoring, skill hygiene, add skill, new skill, skill prefix, pre-commit hook fail.
 ---
 
 # Skill authoring for galaxy-gen

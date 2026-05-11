@@ -1,6 +1,6 @@
 ---
 name: coding-galaxy-gen-references
-description: Reference resources for coilysiren/galaxy-gen (procedural galaxy sim, Rust to WASM). Where to look up real-galaxy parameters when picking sim defaults, what N-body / gravitational-sim packages exist as design references, and which Astropy primitives map onto galaxy-sim concepts. Third peer alongside coding-galaxy-gen-astrophysics and coding-galaxy-gen-cosmology. Use when the sim needs a real-world parameter sanity check, when comparing against published galaxy catalogs, or when designing the gravitational-dynamics layer. Triggers - galaxy-gen, NASA ADS, ADS, SIMBAD, NED, astropy, FITS, sky survey, real galaxy data, REBOUND, GADGET, n-body, n-body simulation, gravitational simulation, galaxy catalog, SDSS, GAIA, JWST, Hubble.
+description: External reference resources for the galaxy sim - real-galaxy catalogs, N-body library design references, Astropy primitives worth mirroring. Use when the sim needs a real-world parameter or validation. Triggers - NASA ADS, SIMBAD, NED, astropy, FITS, sky survey, REBOUND, GADGET, n-body simulation, galaxy catalog, SDSS, GAIA, JWST, Hubble.
 ---
 
 # References for galaxy-gen
