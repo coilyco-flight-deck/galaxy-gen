@@ -33,11 +33,6 @@ categories:
 # deprecated skill name needs to stay out of cross-links.
 forbidden_body_strings: []
 
-# Em-dash check: validator flags U+2014 in SKILL.md prose as a voice-rule
-# violation. Inline code, fenced code blocks, quoted strings, and link
-# targets are masked before scanning.
-enforce_em_dash_check: true
-
 # Hard caps on SKILL.md size. Past these the harness loader degrades.
 max_skill_md_lines: 500
 max_skill_md_bytes: 10000

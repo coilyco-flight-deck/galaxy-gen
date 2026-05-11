@@ -9,26 +9,6 @@ repos:
         pass_filenames: false
         stages: [pre-commit, pre-push]
 
-      - id: skill-conventions
-        name: skill conventions (validate_skills.py)
-        description: Validate .claude/skills/ structure against .claude/skills/categories.yaml.
-        entry: python3 scripts/validate_skills.py
-        language: system
-        pass_filenames: false
-        always_run: true
-        stages: [pre-commit, pre-push]
-
-      - id: dead-cross-links
-        name: dead cross-links (check_dead_links.py)
-        description: Validate inline markdown links inside .claude/skills/ resolve to real files.
-        entry: python3 scripts/check_dead_links.py
-        language: system
-        pass_filenames: false
-        always_run: true
-        stages: [pre-commit, pre-push]
-
-  - repo: local
-    hooks:
       - id: coily-trailer
         name: coily audit-log trailer
         description: Append Audit-log trailers to the commit message based on coily's audit log for this repo.
@@ -37,14 +17,10 @@ repos:
         stages: [prepare-commit-msg]
         always_run: true
         require_serial: true
-  
-  # BEGIN managed by coilyco-ai/scripts/apply-commit-msg-hook.py
-  - repo: local
+
+  - repo: https://github.com/coilysiren/claude-skill-discipline
+    rev: v0.2.0
     hooks:
-      - id: closes-issue
-        name: commit closes a GitHub issue
-        description: Reject commit messages without a GitHub closing keyword (closes/fixes/resolves #N).
-        entry: python3 scripts/check-commit-closes-issue.py
-        language: system
-        stages: [commit-msg]
-  # END managed by coilyco-ai/scripts/apply-commit-msg-hook.py
+      - id: skill-conventions
+      - id: dead-cross-links
+      - id: commit-closes-issue

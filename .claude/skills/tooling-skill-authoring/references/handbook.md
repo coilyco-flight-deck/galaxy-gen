@@ -1,8 +1,8 @@
 # Skill handbook for galaxy-gen
 
-Companion to [`../SKILL.md`](../SKILL.md). Stand-alone structural reference for the `.claude/skills/` surface in this repo. Every rule below is enforced by `scripts/validate_skills.py` against `.claude/skills/categories.yaml`. No external dependencies.
+Companion to [`../SKILL.md`](../SKILL.md). Structural reference for the `.claude/skills/` surface in this repo. Rules below are enforced by the hooks subscribed from [claude-skill-discipline](https://github.com/coilysiren/claude-skill-discipline) against [`.claude/skills/categories.yaml`](../../categories.yaml).
 
-The machine-readable spec is [`.claude/skills/categories.yaml`](../../categories.yaml). When this file and the YAML disagree, the YAML is authoritative. Update both together.
+The machine-readable spec is `categories.yaml`. When this file and the YAML disagree, the YAML is authoritative. Update both together.
 
 ## 1. Layout
 
@@ -16,10 +16,7 @@ galaxy-gen/
 │   └── tooling-skill-authoring/
 │       ├── SKILL.md
 │       └── references/handbook.md
-├── scripts/
-│   ├── validate_skills.py
-│   └── check_dead_links.py
-└── .pre-commit-config.yaml
+└── .pre-commit-config.yaml         # subscribes to claude-skill-discipline
 ```
 
 Flat is the only shape. Nested skill directories are invisible to the loader.
@@ -37,7 +34,7 @@ Adding a new family:
 2. Update this handbook with a one-line description of the family and the reason it exists.
 3. Create the directory and SKILL.md. The validator now accepts it.
 
-Do not bypass the spec by adding a skill whose name doesn't match. The validator rejects unknown names by design, and the rejection is what keeps the surface coherent.
+Do not bypass the spec by adding a skill whose name does not match. The validator rejects unknown names by design, and the rejection is what keeps the surface coherent.
 
 ## 3. SKILL.md frontmatter
 
@@ -54,14 +51,11 @@ description: <one paragraph; pack keyword aliases liberally>
 
 ## 4. Voice rules
 
-Some are validator-enforced, some honor-system. Either way they apply to every SKILL.md, every reference file, and every README that ships in this repo.
+Honor-system. Not enforced by the validator. They apply to every SKILL.md, every reference file, and every README that ships in this repo.
 
-* **No em-dashes (U+2014).** Validator-enforced in SKILL.md prose. Use ` - ` for sidebars, parentheses for asides.
 * **No italics.** Bold only for structural anchors at the start of bullets or as terms-of-art on first mention.
 * **No prose tables.** Use flat bullets: `* <anchor> - <category> - <details>`. Tables only where structurally required (e.g. machine-readable specs).
 * **No semicolons in prose.** Split into separate sentences. Code is fine.
-
-The em-dash check masks inline code, fenced code blocks, quoted strings, and link targets before scanning. Legitimate uses (e.g. quoting prose from elsewhere) belong inside backticks or double quotes.
 
 ## 5. Size caps
 
@@ -77,27 +71,31 @@ Two valid forms for in-prose references to other skills:
 * Bare backticks: `` `skill-name` `` - passing mention, not navigable.
 * Markdown link: `` [`skill-name`](../skill-name/SKILL.md) `` - navigable.
 
-Either form: if the name does not resolve to a real skill, `check_dead_links.py` flags it as a defect.
+Either form: if the name does not resolve to a real skill, the `dead-cross-links` hook flags it as a defect.
 
 External URLs, mailto links, bare anchors, and paths that escape the repo (`../`) are out of scope for the dead-link check.
 
 ## 7. Pre-commit wiring
 
-The hooks below run on every commit. All must pass:
+The hooks below run on every commit. All must pass.
 
-* `trufflehog` - offline secret scan via the local binary.
-* `skill-conventions` - structure, size, em-dash, prefix taxonomy. Reads `.claude/skills/categories.yaml`.
-* `dead-cross-links` - resolves every inline markdown link inside `.claude/skills/` to a real file.
+* `trufflehog` - offline secret scan (local hook).
+* `coily-trailer` - audit-log trailer (local hook, requires the coily CLI).
+* `skill-conventions` - structure, size, prefix taxonomy. From [claude-skill-discipline](https://github.com/coilysiren/claude-skill-discipline).
+* `dead-cross-links` - resolves every inline markdown link inside `.claude/skills/` to a real file. From claude-skill-discipline.
+* `commit-closes-issue` - commit-msg gate requiring `closes #N` for a same-repo issue. From claude-skill-discipline.
 
-Run the structural checks manually before committing for faster feedback:
+Run all hooks manually for faster feedback: `pre-commit run --all-files`.
 
-```sh
-python3 scripts/validate_skills.py <skill-name>
-python3 scripts/check_dead_links.py .claude/skills/<skill-name>/
-```
+## 8. Upgrading
 
-## 8. Editing the validator scripts
+Bump `rev:` for the `claude-skill-discipline` block in `.pre-commit-config.yaml` to pick up new hook versions. Run `pre-commit autoupdate` to do this in bulk. Always re-run the suite after a bump.
 
-`validate_skills.py` and `check_dead_links.py` are Python 3, stdlib + PyYAML, ~700 lines combined. Edit them in this repo. Run the suite against the existing skills after any change to confirm nothing broke.
+## 9. When to escalate
 
-If a change affects the spec interpretation (new field in `categories.yaml`, new rule), update the spec, this handbook, and the relevant SKILL.md content in the same commit.
+Some skill shapes belong centrally, not in galaxy-gen, even when they touch galaxy-gen:
+
+* Runbooks, investigation guides, anti-signal libraries for galaxy-gen failures. Reason: cross-repo failure surface.
+* Cross-cutting tooling that applies to multiple repos.
+
+Galaxy-gen's local surface stays narrow: design references, usage references, and the discipline document for the local skills.

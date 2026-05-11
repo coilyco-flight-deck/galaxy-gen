@@ -1,11 +1,11 @@
 ---
 name: tooling-skill-authoring
-description: Skill-authoring discipline for the galaxy-gen repo. Local rules, local validator, local categories.yaml. Adds or edits go through this guide. Use when adding, editing, or removing a skill under .claude/skills/, when a pre-commit hook fails on skill conventions or dead cross-links, when the categories spec needs a new prefix, or when explaining why these scripts live here. Triggers - skill, SKILL.md, frontmatter, categories.yaml, validate_skills.py, check_dead_links.py, .claude/skills, skill authoring, skill hygiene, skill discipline, add skill, new skill, skill prefix.
+description: Skill-authoring discipline for the galaxy-gen repo. Local rules, local categories.yaml, hooks consumed via pre-commit from claude-skill-discipline. Use when adding, editing, or removing a skill under .claude/skills/, when a pre-commit hook fails on skill conventions or dead cross-links, when the categories spec needs a new prefix, or when explaining the gating story. Triggers - skill, SKILL.md, frontmatter, categories.yaml, validate_skills, check_dead_links, .claude/skills, skill authoring, skill hygiene, skill discipline, add skill, new skill, skill prefix.
 ---
 
 # Skill authoring for galaxy-gen
 
-Discipline document for the `.claude/skills/` surface in this repo. Self-contained: the validator, the categories spec, the cross-link checker, and the pre-commit hooks that gate them all live in this repository.
+Discipline document for the `.claude/skills/` surface in this repo. The skill content and the categories spec live here. The validator and link checker run as pre-commit hooks subscribed from [claude-skill-discipline](https://github.com/coilysiren/claude-skill-discipline).
 
 Full structural rules are in [`references/handbook.md`](references/handbook.md).
 
@@ -14,16 +14,13 @@ Full structural rules are in [`references/handbook.md`](references/handbook.md).
 ```
 galaxy-gen/
 ├── .claude/skills/
-│   ├── categories.yaml             # spec consumed by validate_skills.py
+│   ├── categories.yaml             # spec consumed by the skill-conventions hook
 │   ├── coding-galaxy-gen-*/        # per-skill directories
 │   │   └── SKILL.md
 │   └── tooling-skill-authoring/    # this skill
 │       ├── SKILL.md
 │       └── references/handbook.md
-├── scripts/
-│   ├── validate_skills.py          # structural validator
-│   └── check_dead_links.py         # markdown cross-link validator
-└── .pre-commit-config.yaml         # invokes the two checks
+└── .pre-commit-config.yaml         # subscribes to claude-skill-discipline
 ```
 
 All skills sit flat under `.claude/skills/`. No nesting. Sub-skill directories are invisible to the harness loader.
@@ -55,22 +52,16 @@ The `description` field is what the harness keyword-matches for triggering. Lead
 1. Pick the prefix. If none fits, add to `categories.yaml` first.
 2. Create `.claude/skills/<name>/SKILL.md` with frontmatter + body.
 3. Stage with `git add` and commit. The pre-commit hooks run automatically:
-   - `skill-conventions` (validate_skills.py) - structure, size, em-dash check.
-   - `dead-cross-links` (check_dead_links.py) - inline `[text](path.md)` targets must resolve.
-   - `trufflehog` - secret scan.
+   - `skill-conventions` - structure, size, prefix taxonomy. Reads `.claude/skills/categories.yaml`.
+   - `dead-cross-links` - inline `[text](path.md)` targets inside `.claude/skills/` must resolve.
+   - `commit-closes-issue` - commit message must close a same-repo GitHub issue.
+   - `trufflehog` - secret scan (local hook).
+   - `coily-trailer` - audit-log trailer (local hook, requires the coily CLI).
 
-To run the structural checks manually before committing:
-
-```sh
-python3 scripts/validate_skills.py <name>
-python3 scripts/check_dead_links.py .claude/skills/<name>/
-```
+To run the structural checks manually before committing, install pre-commit and run `pre-commit run --all-files`.
 
 ## Voice rules
 
-The validator enforces the em-dash rule. The rest are honor-system but apply to every SKILL.md, reference file, and README that ships in this repo:
-
-* **No em-dashes (U+2014).** Use ` - ` for sidebars.
 * **No italics.** Bold only for structural anchors.
 * **No prose tables.** Use flat bullets: `* <anchor> - <category> - <details>`.
 * **No semicolons in prose.** Split into separate sentences.
@@ -81,7 +72,7 @@ The validator enforces the em-dash rule. The rest are honor-system but apply to 
 
 ## Encode the why, not just the what
 
-Every agent session starts cold. There is no human to ask why a rule was written. Each authoring rule below carries decision context, not just procedure. Hold that line when adding new rules.
+Every agent session starts cold. There is no human to ask why a rule was written. Each authoring rule should carry decision context, not just procedure.
 
 Shape: lead with the rule, then a **Why:** line (incident, constraint, prior failure mode), then a **How to apply:** line (when the rule fires). Date-stamp the flag where useful so a future read can judge whether the why is still load-bearing.
 
@@ -104,4 +95,8 @@ Two valid forms for in-prose references to other skills:
 * Bare backticks: `` `skill-name` `` - passing mention, not navigable.
 * Markdown link: `` [`skill-name`](../skill-name/SKILL.md) `` - navigable.
 
-If the name does not resolve to a real skill in this repo, `check_dead_links.py` flags it. External URLs and paths that escape the repo (`../something/...`) are out of scope for the check.
+If the name does not resolve to a real skill in this repo, `dead-cross-links` flags it. External URLs and paths that escape the repo (`../something/...`) are out of scope.
+
+## Upgrading the hooks
+
+When [claude-skill-discipline](https://github.com/coilysiren/claude-skill-discipline) releases a new tag, bump `rev:` in `.pre-commit-config.yaml`. Run `pre-commit autoupdate` to do this in bulk. Re-run the suite to confirm nothing broke before pushing.
