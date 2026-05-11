@@ -36,3 +36,9 @@ forbidden_body_strings: []
 # Hard caps on SKILL.md size. Past these the harness loader degrades.
 max_skill_md_lines: 500
 max_skill_md_bytes: 10000
+
+# Cap on frontmatter `description` field length, in bytes. Descriptions
+# are loaded into every agent session for keyword matching, so they
+# are always-on context cost. 1200 fits a packed canonical-name plus
+# 5-10 trigger phrasings.
+max_description_bytes: 1200
