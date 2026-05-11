@@ -1,0 +1,39 @@
+# Skill-category spec for galaxy-gen/.claude/skills/.
+#
+# This is the per-repo equivalent of coilyco-ai/.claude/skills/skill-creator/
+# references/categories.yaml. galaxy-gen ships a much smaller skill surface
+# (design references for the procedural galaxy sim), so the taxonomy here is
+# correspondingly trimmed. Same validator (scripts/validate_skills.py) reads
+# both spec locations.
+#
+# Per-category fields documented at length in the coilyco-ai canonical spec.
+# This file repeats only the fields actually used by galaxy-gen skills.
+
+categories:
+
+  # ---- Galaxy-gen design and reference skills ----
+  #
+  # Co-located with the repo per the dual-location policy in
+  # coilyco-ai/.claude/skills/tooling-skill-authoring. Reason: these are
+  # pure-design-reference skills with no cross-repo failure surface, so
+  # co-location is appropriate.
+
+  - id: coding-galaxy-gen
+    kind: prefix
+    prefix: coding-galaxy-gen-
+    enforce_status: false
+
+# ---- Global checks ----
+
+# Strings that must not appear in any SKILL.md body. Empty for now; populate
+# if any deprecated skill names need to stay out of cross-links.
+forbidden_body_strings: []
+
+# Em-dash check: validator flags U+2014 in SKILL.md prose as a voice-rule
+# violation. Inline code, fenced code blocks, quoted strings, and link
+# targets are masked before scanning.
+enforce_em_dash_check: true
+
+# Hard caps on SKILL.md size. Past these the loader refuses or drops the file.
+max_skill_md_lines: 500
+max_skill_md_bytes: 10000
