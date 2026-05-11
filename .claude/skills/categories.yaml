@@ -14,13 +14,25 @@ categories:
   # ---- Galaxy-gen design and reference skills ----
   #
   # Co-located with the repo per the dual-location policy in
-  # coilyco-ai/.claude/skills/tooling-skill-authoring. Reason: these are
+  # tooling-skill-authoring (this repo's vendored copy). Reason: these are
   # pure-design-reference skills with no cross-repo failure surface, so
   # co-location is appropriate.
 
   - id: coding-galaxy-gen
     kind: prefix
     prefix: coding-galaxy-gen-
+    enforce_status: false
+
+  # ---- Agent-ecosystem meta (skill authoring discipline) ----
+  #
+  # tooling-skill-authoring is co-located here so the discipline (the
+  # rules + handbook) ships with the repo. Galaxy-gen does not need
+  # to reach into coilyco-ai to know how to author or validate a
+  # local skill.
+
+  - id: tooling
+    kind: prefix
+    prefix: tooling-
     enforce_status: false
 
 # ---- Global checks ----
