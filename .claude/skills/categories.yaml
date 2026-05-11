@@ -1,35 +1,27 @@
 # Skill-category spec for galaxy-gen/.claude/skills/.
 #
-# This is the per-repo equivalent of coilyco-ai/.claude/skills/skill-creator/
-# references/categories.yaml. galaxy-gen ships a much smaller skill surface
-# (design references for the procedural galaxy sim), so the taxonomy here is
-# correspondingly trimmed. Same validator (scripts/validate_skills.py) reads
-# both spec locations.
+# Source of truth for scripts/validate_skills.py. The human-readable
+# discipline is in
+# .claude/skills/tooling-skill-authoring/references/handbook.md.
+# Keep this file and the handbook in sync.
 #
-# Per-category fields documented at length in the coilyco-ai canonical spec.
-# This file repeats only the fields actually used by galaxy-gen skills.
+# Each category entry is either a prefix family or an exact-name skill.
+# Field reference:
+#   kind:            "prefix" or "exact"
+#   prefix / exact:  the matching name fragment
+#   enforce_status:  if true, the SKILL.md must carry a status line
+#                    matching status_kinds + status_freshness.
 
 categories:
 
-  # ---- Galaxy-gen design and reference skills ----
-  #
-  # Co-located with the repo per the dual-location policy in
-  # tooling-skill-authoring (this repo's vendored copy). Reason: these are
-  # pure-design-reference skills with no cross-repo failure surface, so
-  # co-location is appropriate.
-
+  # Design and reference skills scoped to this repo's procedural galaxy sim.
   - id: coding-galaxy-gen
     kind: prefix
     prefix: coding-galaxy-gen-
     enforce_status: false
 
-  # ---- Agent-ecosystem meta (skill authoring discipline) ----
-  #
-  # tooling-skill-authoring is co-located here so the discipline (the
-  # rules + handbook) ships with the repo. Galaxy-gen does not need
-  # to reach into coilyco-ai to know how to author or validate a
-  # local skill.
-
+  # Agent-ecosystem meta. Currently just tooling-skill-authoring, which
+  # documents the rules and points at this spec.
   - id: tooling
     kind: prefix
     prefix: tooling-
@@ -37,8 +29,8 @@ categories:
 
 # ---- Global checks ----
 
-# Strings that must not appear in any SKILL.md body. Empty for now; populate
-# if any deprecated skill names need to stay out of cross-links.
+# Strings that must not appear in any SKILL.md body. Populate when a
+# deprecated skill name needs to stay out of cross-links.
 forbidden_body_strings: []
 
 # Em-dash check: validator flags U+2014 in SKILL.md prose as a voice-rule
@@ -46,6 +38,6 @@ forbidden_body_strings: []
 # targets are masked before scanning.
 enforce_em_dash_check: true
 
-# Hard caps on SKILL.md size. Past these the loader refuses or drops the file.
+# Hard caps on SKILL.md size. Past these the harness loader degrades.
 max_skill_md_lines: 500
 max_skill_md_bytes: 10000

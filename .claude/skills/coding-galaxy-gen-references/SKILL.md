@@ -24,7 +24,7 @@ You almost never want to ingest real FITS files into a procedural sim. The astro
 The bibliographic database for astronomy. Indispensable for "what does the literature say about X galaxy property". Free API, 3000 requests/day.
 
 * **Register for a token** - https://ui.adsabs.harvard.edu/user/settings/token (free, no expiry).
-* **Auth** - `Authorization: Bearer $ADS_API_TOKEN` header. Store via `coily aws ssm put-parameter` if used regularly.
+* **Auth** - `Authorization: Bearer $ADS_API_TOKEN` header. Keep the token out of the repo (env var, secret store, or `.env` listed in `.gitignore`).
 * **Search endpoint** - `GET https://api.adsabs.harvard.edu/v1/search/query?q=...&fl=title,author,year,bibcode,citation_count&rows=10&sort=citation_count+desc`.
 * **Object search** - `q=object:"M31"` returns papers about a specific galaxy. Useful when copying real-galaxy parameters into the sim.
 * **Docs** - https://ui.adsabs.harvard.edu/help/api/

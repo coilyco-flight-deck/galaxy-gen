@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
-Validator for coilyco-ai/.claude/skills/.
+Validator for .claude/skills/.
 
-Enforces the canonical structure documented in
-.claude/skills/skill-creator/references/handbook.md, driven by the spec at
-.claude/skills/skill-creator/references/categories.yaml.
+Enforces structural rules driven by .claude/skills/categories.yaml.
+The full discipline lives in
+.claude/skills/tooling-skill-authoring/references/handbook.md.
 
 Usage:
     python3 scripts/validate_skills.py              # validate every skill
@@ -33,9 +33,9 @@ except ModuleNotFoundError:
 REPO_ROOT = Path(__file__).resolve().parent.parent
 SKILLS_DIR = REPO_ROOT / ".claude" / "skills"
 
-# Spec lookup. coilyco-ai keeps the canonical taxonomy under skill-creator's
-# references/ dir. Repos that vendor this script keep a slim per-repo spec
-# at .claude/skills/categories.yaml. First match wins.
+# Spec lookup. Prefer a slim per-repo spec at .claude/skills/categories.yaml.
+# Fall back to a skill-creator-style layout if a repo uses that shape.
+# First match wins.
 _SPEC_CANDIDATES = [
     SKILLS_DIR / "categories.yaml",
     SKILLS_DIR / "skill-creator" / "references" / "categories.yaml",
@@ -232,7 +232,7 @@ def check_em_dashes(md_path: Path, body: str, report: Report) -> None:
         line_no = masked.count("\n", 0, m.start()) + 1
         report.fail(
             f"{md_path.relative_to(REPO_ROOT)}:{line_no}: em-dash (U+2014) in prose. "
-            f"Coilyco-ai voice rules forbid em-dashes. Use a period, comma, parens, "
+            f"Repo voice rules forbid em-dashes. Use a period, comma, parens, "
             f"or ' - '. If this is a legitimate quoted use, wrap it in backticks "
             f"or double quotes to mark it intentional."
         )
@@ -265,13 +265,12 @@ def check_stale_skill_refs(
 ) -> None:
     """Flag backticked references to non-existent skills under any known prefix.
 
-    Coilyco-ai prefix space overlaps natural language (e.g. `kai-server` is a
-    hostname, `home-page` is a noun, `daily-driver` is an idiom), so this check
-    only fires when the bare-backtick reference also appears in markdown-link
-    form (`[text](path)`) elsewhere in the file. The markdown-link form is the
-    intent signal that the author meant to cross-link a skill. The dead-link
-    checker covers the navigable-link case directly; this catches the
-    bare-backtick mention that drifts after a rename.
+    Prefix space can overlap natural language (e.g. `home-page` is a noun,
+    `daily-driver` is an idiom), so this check only fires when the bare-backtick
+    reference also appears in markdown-link form (`[text](path)`) elsewhere in
+    the file. The markdown-link form is the intent signal that the author meant
+    to cross-link a skill. The dead-link checker covers the navigable-link case
+    directly; this catches the bare-backtick mention that drifts after a rename.
     """
     prefixes = spec.prefixes
     if not prefixes:
@@ -469,8 +468,8 @@ def gather_current_skills() -> set[str]:
         if p.name.startswith("."):
             continue
         if p.is_symlink():
-            # Symlinks (e.g. coily-passthroughs@) are skipped from validation
-            # but still register as known names so cross-link checks can resolve.
+            # Symlinks are skipped from validation but still register as known
+            # names so cross-link checks can resolve.
             out.add(p.name)
             continue
         if p.is_dir():

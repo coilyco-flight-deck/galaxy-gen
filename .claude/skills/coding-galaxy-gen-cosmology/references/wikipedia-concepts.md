@@ -1,6 +1,6 @@
 # Wikipedia lead paragraphs: cosmology concepts
 
-Lead-paragraph extracts from English Wikipedia for the concepts cited in [`../SKILL.md`](../SKILL.md). Text is licensed [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/). Em-dashes (U+2014) have been normalized to ' - ' to satisfy the coilyco-ai voice rules; otherwise extracts are verbatim.
+Lead-paragraph extracts from English Wikipedia for the concepts cited in [`../SKILL.md`](../SKILL.md). Text is licensed [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/). Em-dashes (U+2014) have been normalized to ' - ' per this repo's voice rules. Otherwise extracts are verbatim.
 
 ## Hubble's law
 

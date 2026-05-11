@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Find dead cross-links inside coilyco-ai/.claude/skills/.
+Find dead cross-links inside .claude/skills/.
 
 Scans every Markdown file under .claude/skills/, extracts inline markdown
 links (`[text](target)` and `[text](target#anchor)`), and reports any
@@ -9,7 +9,7 @@ local-relative target that doesn't resolve to a real file or directory.
 Out of scope:
 - External URLs (anything with a scheme, e.g. http://, mailto:).
 - Bare anchors (`#section`) - no anchor index is maintained.
-- Sibling-repo paths (../coily/, ../eco-mods/, ../infrastructure/, etc).
+- Paths that resolve outside the repo working tree.
 - Reference-style links (`[text][ref]` definitions).
 - Image links (`![alt](src)`).
 - Bare skill-name mentions in prose.
@@ -44,28 +44,8 @@ EXTERNAL_PREFIXES = (
     "javascript:",
 )
 
-# Sibling repos under ../ from coilyco-ai. Treated as external since the
-# validator only knows about coilyco-ai's tree.
-SIBLING_REPO_PARTS = {
-    "backend",
-    "coily",
-    "coilysiren",
-    "eco-cycle-prep",
-    "eco-jobs-tracker",
-    "eco-mcp-app",
-    "eco-mods",
-    "eco-mods-public",
-    "eco-telemetry",
-    "galaxy-gen",
-    "gauntlet",
-    "homebrew-tap",
-    "infrastructure",
-    "otel-a2a-relay",
-    "repo-recall",
-    "sirens-discord-ops",
-    "website",
-    "coilyco-vault",
-}
+# Paths that escape the repo (any leading ../) are treated as external,
+# since the validator only knows about this repo's tree.
 
 SKIP_PATH_PARTS = {"node_modules"}
 SKIP_FILE_BASENAMES = {"TEMPLATE.md"}
@@ -81,13 +61,9 @@ def is_external(target: str) -> bool:
         return True
     if "://" in target.split("/")[0]:
         return True
-    # Sibling-repo path: leading ../ + first non-`..` part is a sibling repo.
-    parts = target.split("/")
-    for p in parts:
-        if p in SIBLING_REPO_PARTS:
-            return True
-        if p and p != "..":
-            break
+    # Anything that escapes the repo via `..` is external.
+    if target.startswith("../") or "/../" in target:
+        return True
     return False
 
 

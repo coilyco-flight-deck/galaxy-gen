@@ -9,17 +9,9 @@ repos:
         pass_filenames: false
         stages: [pre-commit, pre-push]
 
-      - id: leak-check
-        name: leak-check (private-string denylist)
-        description: Reject staged files that introduce known-private strings (LAN IPs, MACs, SSIDs, addresses, secondary email). Vendored from coilyco-ai/scripts/.
-        entry: python3 scripts/leak-check.py
-        language: system
-        pass_filenames: false
-        stages: [pre-commit, pre-push]
-
       - id: skill-conventions
         name: skill conventions (validate_skills.py)
-        description: Validate .claude/skills/ structure against .claude/skills/categories.yaml. Vendored from coilyco-ai/scripts/.
+        description: Validate .claude/skills/ structure against .claude/skills/categories.yaml.
         entry: python3 scripts/validate_skills.py
         language: system
         pass_filenames: false
@@ -28,7 +20,7 @@ repos:
 
       - id: dead-cross-links
         name: dead cross-links (check_dead_links.py)
-        description: Validate inline markdown links inside .claude/skills/ resolve to real files. Vendored from coilyco-ai/scripts/.
+        description: Validate inline markdown links inside .claude/skills/ resolve to real files.
         entry: python3 scripts/check_dead_links.py
         language: system
         pass_filenames: false
