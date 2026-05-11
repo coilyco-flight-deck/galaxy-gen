@@ -134,6 +134,10 @@ metadata, surfaced here with admiration:
   - Crossed the line from "simulation" into "game" with trading and
     smuggling mechanics layered on top of the physics.
 
+## Contributing
+
+External contributors are welcome. One non-obvious prerequisite: the pre-commit pipeline includes a `coily-trailer` hook that calls [`coily`](https://github.com/coilysiren/coily), a CLI used to audit and trail commits across this workspace. Install it before your first commit, or the hook will fail.
+
 ## Deployment
 
 Deployed to [galaxy-gen.coilysiren.me](https://galaxy-gen.coilysiren.me).
