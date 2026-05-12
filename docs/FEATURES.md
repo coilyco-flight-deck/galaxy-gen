@@ -83,3 +83,11 @@ Baseline snapshot of what this repo does, so future changes can be evaluated as 
 - The repo lists nine inspirational sibling projects in the readme. Use that list when evaluating proposed scope adds. Items already pulled in: WebGPU compute kernel (idea #9), worker-based physics (echo of `n-body-wasm-webvr`), reproducible seeding + URL params (echo of `JS_ParticleSystem`'s parameter tuning).
 - The Python predecessor (`galaxySim`) is explicitly retired. Don't port features back from it without checking they survived the Rust rewrite intentionally.
 - `docs/perf-rewrite.md` documents the SoA + cartesian + lookup-table rewrite. Treat its decisions as load-bearing for the inner loop.
+
+## See also
+
+- [README.md](../README.md) - human-facing intro.
+- [AGENTS.md](../AGENTS.md) - agent-facing operating rules.
+- [.coily/coily.yaml](../.coily/coily.yaml) - allowlisted commands.
+
+Cross-reference convention from [coilysiren/coilyco-ai#313](https://github.com/coilysiren/coilyco-ai/issues/313).
