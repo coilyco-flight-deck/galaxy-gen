@@ -81,3 +81,7 @@ Per the workspace "Default to proactive scheduling" rule: after pushing to `main
 - **Verify CI**: `coily gh run list --repo coilysiren/galaxy-gen --limit 1` should show `completed/success`. Re-schedule once at +300s if in progress; surface and stop on failure.
 - **Verify rollout**: `coily kubectl --context=kai-server -n coilysiren-galaxy-gen rollout status deployment/coilysiren-galaxy-gen-app --timeout=2m`.
 - **Skip** for docs-only pushes.
+
+## Commands
+
+Route every dev command through coily, which reads [`.coily/coily.yaml`](.coily/coily.yaml). The lockdown denies bare invocations of the underlying tools (`make`, `cargo`, `wasm-pack`, `npx`, etc.). Add new verbs to that file before invoking them.
