@@ -18,44 +18,44 @@ help: ## Show this help
 
 # --- Local dev -------------------------------------------------------------
 
-install: ## Install Rust, WASM, and JS deps
+install: ## Install Rust, WASM, and JS deps (cargo build + wasm-pack + npm install + playwright install).
 	cargo build
 	cargo install wasm-pack
 	wasm-pack build
 	npm install
 	npx playwright install chromium
 
-test-rust: ## Rust type check + unit tests
+test-rust: ## cargo check + cargo test.
 	cargo check
 	cargo test -- --color always
 
-build-rust: build-wasm ## Build rust + wasm
+build-rust: build-wasm ## Build Rust + WASM (debug).
 	cargo build
 
-build-wasm: ## Compile Rust to WASM (pkg/)
+build-wasm: ## Compile Rust to WASM via wasm-pack (pkg/).
 	wasm-pack build
 
-build-js-prod: build-wasm ## Production webpack build
+build-js-prod: build-wasm ## Production webpack build.
 	npx webpack --config webpack.config.js --mode production
 
-dev: ## Run rust/wasm watcher and webpack-dev-server concurrently (auto-reload)
+dev: ## Run the rust/wasm watcher and webpack-dev-server concurrently with auto-reload.
 	@echo "Starting rust watcher + JS dev server (Ctrl-C stops both)"
 	@trap 'kill 0' INT TERM EXIT; \
 		cargo watch -w src/rust -w Cargo.toml -s "wasm-pack build --dev" & \
 		npx webpack serve --open & \
 		wait
 
-dev-js: ## Run only the JS dev server with HMR
+dev-js: ## Run only the JS dev server with HMR.
 	npx webpack serve --open
 
-dev-rust: ## Run only the Rust/WASM watcher (rebuild on change)
+dev-rust: ## Run only the Rust/WASM watcher.
 	cargo watch -w src/rust -w Cargo.toml -s "wasm-pack build --dev"
 
-test-e2e: build-wasm ## Run Playwright end-to-end tests
+test-e2e: build-wasm ## Run Playwright end-to-end tests.
 	npm install ./pkg --no-save
 	npx playwright test
 
-test-e2e-ui: build-wasm ## Run Playwright tests in UI mode
+test-e2e-ui: build-wasm ## Run Playwright tests in UI mode.
 	npm install ./pkg --no-save
 	npx playwright test --ui
 
@@ -73,7 +73,7 @@ test: test-rust test-e2e ## Run all tests (rust + e2e)
 		-t $(name):latest \
 		.
 
-build-docker: .build-docker ## Build the production Docker image
+build-docker: .build-docker ## Build the docker image locally with BuildKit cache.
 
 run-docker: ## Run the production image locally on $(port)
 	docker run -e PORT=$(port) -p $(port):$(port) -it --rm $(name):latest
@@ -82,7 +82,7 @@ run-docker: ## Run the production image locally on $(port)
 	docker tag $(name):$(git-hash) $(image-url)
 	docker push $(image-url)
 
-publish: build-docker .publish ## Push the image to GHCR
+publish: build-docker .publish ## Tag and push the docker image to ghcr.io.
 
 .deploy:
 	env \
