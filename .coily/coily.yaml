@@ -43,3 +43,17 @@ commands:
   publish:
     run: make publish
     description: Tag and push the docker image to ghcr.io.
+
+# Catalog metadata for the cross-repo knowledge graph.
+# Schema: coilysiren/coilyco-ai#420 (tracker).
+catalog:
+  kind: Component
+  type: website
+  system: shared
+  owner: kai
+  lifecycle: production
+  description: "Procedural galaxy simulation. Rust compiled to WASM, rendered in the browser. Live at https://galaxy-gen.coilysiren.me"
+  dependsOn:
+    - coilysiren/infrastructure
+  providesApis:
+    - galaxy-gen-web
