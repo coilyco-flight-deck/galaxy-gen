@@ -2,9 +2,12 @@ name: undraft-and-poke-codex
 
 # Codex doesn't review draft PRs and doesn't auto-review when a PR leaves
 # draft, so this workflow flips draft PRs to ready-for-review on open and
-# explicitly mentions @codex to trigger a review. For bot-authored PRs it
+# explicitly mentions @codex to trigger a review. The mention is posted
+# via the CODEX_SUMMON_TOKEN PAT because codex ignores comments posted by
+# the github-actions[bot] identity. For bot-authored PRs this workflow
 # also enables squash auto-merge so they ship the moment required checks
-# pass. Requires the repo setting "Allow auto-merge" to be enabled.
+# pass. Requires the repo setting "Allow auto-merge" to be enabled and
+# the CODEX_SUMMON_TOKEN repo Actions secret to be set.
 
 on:
   pull_request:
@@ -22,6 +25,7 @@ jobs:
       - name: Mark ready for review and mention codex
         uses: actions/github-script@v7
         with:
+          github-token: ${{ secrets.CODEX_SUMMON_TOKEN }}
           script: |
             await github.graphql(
               `mutation($id: ID!) {
