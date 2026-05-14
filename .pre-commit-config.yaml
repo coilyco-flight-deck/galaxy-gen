@@ -26,14 +26,16 @@ repos:
       - id: commit-closes-issue
   
   
+  
   # BEGIN managed by coilyco-ai/scripts/apply-catalog-block-hook.py
   - repo: local
     hooks:
       - id: catalog-block-present
         name: .coily/coily.yaml catalog block present
         description: Assert this repo declares its catalog metadata. See coilysiren/coilyco-ai#420.
-        entry: python3 scripts/check-catalog-block.py
-        language: system
+        entry: python scripts/check-catalog-block.py
+        language: python
+        additional_dependencies: [pyyaml]
         always_run: true
         pass_filenames: false
         stages: [pre-commit]
