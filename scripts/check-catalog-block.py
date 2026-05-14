@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
-"""pre-commit hook: assert .coily/coily.yaml has a top-level `catalog:` block.
+"""pre-commit hook: assert this repo's catalog config has a top-level `catalog:` block.
 
-Schema and rollout: coilysiren/coilyco-ai#420.
+Looks at `.agent-guard/agent-guard.yaml` first (external-facing repos),
+then falls back to `.coily/coily.yaml` (Kai's personal repos). One of
+the two must exist and carry the block.
+
+Schema and rollout: coilysiren/coilyco-ai#420. Two-file rollout: coilysiren/coilyco-ai#480.
 
 Required keys inside `catalog:`:
     kind, type, system, owner, lifecycle, description, dependsOn, providesApis.
@@ -18,7 +22,7 @@ from pathlib import Path
 from typing import NoReturn
 
 try:
-    import yaml  # type: ignore[import-untyped]
+    import yaml  # type: ignore[import-untyped, unused-ignore]
 except ImportError:  # pragma: no cover
     print(
         "check-catalog-block: PyYAML not available. Install with `pip install pyyaml`.",
@@ -47,10 +51,20 @@ def fail(msg: str) -> NoReturn:
     sys.exit(1)
 
 
+CONFIG_PATHS = (
+    Path(".agent-guard/agent-guard.yaml"),
+    Path(".coily/coily.yaml"),
+)
+
+
 def main() -> int:
-    path = Path(".coily/coily.yaml")
-    if not path.exists():
-        fail(f"{path} not found. Every coilysiren/* repo needs a coily.yaml.")
+    path = next((p for p in CONFIG_PATHS if p.exists()), None)
+    if path is None:
+        fail(
+            "no catalog config found. Every coilysiren/* repo needs either "
+            ".agent-guard/agent-guard.yaml (external-facing) or "
+            ".coily/coily.yaml (personal)."
+        )
 
     try:
         data = yaml.safe_load(path.read_text())

@@ -25,6 +25,7 @@ repos:
       - id: dead-cross-links
       - id: commit-closes-issue
   
+  
   # BEGIN managed by coilyco-ai/scripts/apply-catalog-block-hook.py
   - repo: local
     hooks:
