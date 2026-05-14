@@ -25,7 +25,15 @@ try:
     import yaml  # type: ignore[import-untyped, unused-ignore]
 except ImportError:  # pragma: no cover
     print(
-        "check-catalog-block: PyYAML not available. Install with `pip install pyyaml`.",
+        "check-catalog-block: PyYAML not available.\n"
+        "  Short-term fix: pip install pyyaml\n"
+        "  Durable fix: this hook is running under `language: system` against a host\n"
+        "  python that lacks pyyaml. Migrate the repo's .pre-commit-config.yaml entry\n"
+        "  for catalog-block-present to the uv-managed shape (`language: python` +\n"
+        "  `additional_dependencies: [pyyaml]`). Canonical block:\n"
+        "    coilyco-ai/scripts/apply-catalog-block-hook.py (MANAGED_BLOCK).\n"
+        "  Refresh fleet-wide with: coily exec apply-catalog-block-hook\n"
+        "  Tracker: coilysiren/coilyco-ai#488",
         file=sys.stderr,
     )
     sys.exit(1)
