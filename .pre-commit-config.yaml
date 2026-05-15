@@ -27,16 +27,16 @@ repos:
   
   
   
-  # BEGIN managed by coilyco-ai/scripts/apply-catalog-block-hook.py
+  # BEGIN managed by agentic-os-kai/scripts/apply-catalog-block-hook.py
   - repo: local
     hooks:
       - id: catalog-block-present
         name: .coily/coily.yaml catalog block present
-        description: Assert this repo declares its catalog metadata. See coilysiren/coilyco-ai#420.
+        description: Assert this repo declares its catalog metadata. See coilysiren/agentic-os-kai#420.
         entry: python scripts/check-catalog-block.py
         language: python
         additional_dependencies: [pyyaml]
         always_run: true
         pass_filenames: false
         stages: [pre-commit]
-  # END managed by coilyco-ai/scripts/apply-catalog-block-hook.py
+  # END managed by agentic-os-kai/scripts/apply-catalog-block-hook.py

@@ -5,7 +5,7 @@ Looks at `.agent-guard/agent-guard.yaml` first (external-facing repos),
 then falls back to `.coily/coily.yaml` (Kai's personal repos). One of
 the two must exist and carry the block.
 
-Schema and rollout: coilysiren/coilyco-ai#420. Two-file rollout: coilysiren/coilyco-ai#480.
+Schema and rollout: coilysiren/agentic-os-kai#420. Two-file rollout: coilysiren/agentic-os-kai#480.
 
 Required keys inside `catalog:`:
     kind, type, system, owner, lifecycle, description, dependsOn, providesApis.
@@ -31,9 +31,9 @@ except ImportError:  # pragma: no cover
         "  python that lacks pyyaml. Migrate the repo's .pre-commit-config.yaml entry\n"
         "  for catalog-block-present to the uv-managed shape (`language: python` +\n"
         "  `additional_dependencies: [pyyaml]`). Canonical block:\n"
-        "    coilyco-ai/scripts/apply-catalog-block-hook.py (MANAGED_BLOCK).\n"
+        "    agentic-os-kai/scripts/apply-catalog-block-hook.py (MANAGED_BLOCK).\n"
         "  Refresh fleet-wide with: coily exec apply-catalog-block-hook\n"
-        "  Tracker: coilysiren/coilyco-ai#488",
+        "  Tracker: coilysiren/agentic-os-kai#488",
         file=sys.stderr,
     )
     sys.exit(1)
@@ -50,7 +50,7 @@ REQUIRED_KEYS = (
     "providesApis",
 )
 LIST_KEYS = ("dependsOn", "providesApis")
-TRACKER = "coilysiren/coilyco-ai#420"
+TRACKER = "coilysiren/agentic-os-kai#420"
 
 
 def fail(msg: str) -> NoReturn:
