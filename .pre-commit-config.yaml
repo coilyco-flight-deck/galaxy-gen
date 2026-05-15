@@ -18,15 +18,40 @@ repos:
         always_run: true
         require_serial: true
 
-  - repo: https://github.com/coilysiren/claude-skill-discipline
-    rev: v0.5.0
+  # BEGIN managed by agentic-os-kai/scripts/apply-skill-discipline-hooks.py
+  - repo: local
     hooks:
-      - id: skill-conventions
-      - id: dead-cross-links
-      - id: commit-closes-issue
-  
-  
-  
+      - id: validate-skills
+        name: skill conventions
+        description: Validate the structure of .claude/skills/ against .claude/skills/categories.yaml.
+        entry: python scripts/validate-skills.py
+        language: python
+        additional_dependencies: [pyyaml]
+        pass_filenames: false
+        always_run: true
+        stages: [pre-commit, pre-push]
+
+      - id: check-dead-links
+        name: dead cross-links
+        description: Validate that inline markdown links inside .claude/skills/ resolve to real files.
+        entry: python scripts/check-dead-links.py
+        language: python
+        pass_filenames: false
+        always_run: true
+        stages: [pre-commit, pre-push]
+  # END managed by agentic-os-kai/scripts/apply-skill-discipline-hooks.py
+
+  # BEGIN managed by agentic-os-kai/scripts/apply-commit-msg-hook.py
+  - repo: local
+    hooks:
+      - id: closes-issue
+        name: commit closes a GitHub issue
+        description: Reject commit messages without a GitHub closing keyword (closes/fixes/resolves #N).
+        entry: python3 scripts/check-commit-closes-issue.py
+        language: system
+        stages: [commit-msg]
+  # END managed by agentic-os-kai/scripts/apply-commit-msg-hook.py
+
   # BEGIN managed by agentic-os-kai/scripts/apply-catalog-block-hook.py
   - repo: local
     hooks:
