@@ -48,91 +48,18 @@ See the [makefile](makefile) for the full set of targets and
 
 ## Similar projects
 
-A few open-source galaxy / n-body / WASM-sim projects worth studying.
-Feature bullets below are drawn from each project's readme and public
-metadata, surfaced here with admiration:
+Open-source galaxy / n-body / WASM-sim projects worth studying. Surfaced with admiration.
 
-- [andrewdcampbell/galaxy-sim](https://github.com/andrewdcampbell/galaxy-sim)
-  — real-time N-body galaxy-formation sim in the browser.
-  - Three.js / WebGL rendering with cubemap skybox backgrounds and both
-    free-orbit and guided camera modes.
-  - Runtime controls for gravitational strength, particle opacity, and
-    HiDPI pixel ratio — tweakable during the sim without a rebuild.
-  - Keyboard shortcuts for play/pause, rotation, and UI toggles, plus
-    the usual stars-coalescing-around-a-central-black-hole narrative.
-- [magwo/fullofstars](https://github.com/magwo/fullofstars) — the
-  original real-time N-body galaxy toy this project's art direction
-  takes after.
-  - Pure JavaScript + WebGL rendering, no build step.
-  - Served as the architectural reference for the newer `galaxy-sim`
-    fork above — a nice example of an idea worth forking.
-  - Tight, low-dependency footprint that runs as a single static page.
-- [simbleau/nbody-wasm-sim](https://github.com/simbleau/nbody-wasm-sim)
-  — 2D N-body simulation in Rust, compiled to WebAssembly.
-  - Uses `wgpu` so the N-body force kernel runs as a WebGPU compute
-    shader on the GPU.
-  - Same Rust source drives both native and web builds — one of the
-    cleaner examples of the wgpu cross-platform story.
-  - Explicit, documented toolchain (wasm + wgpu-rs) tagged via GitHub
-    topics, which makes the project easy to learn from.
-- [MichaelJCole/n-body-wasm-webvr](https://github.com/MichaelJCole/n-body-wasm-webvr)
-  — a browser universe rendered in WebVR.
-  - Runs the physics in a dedicated Web Worker so the main thread stays
-    free for A-Frame's scene graph.
-  - Core integrator is written in AssemblyScript and compiled to WASM.
-  - Scene is viewable in a headset via A-Frame / WebVR — a nice example
-    of how to stitch WASM + Workers + WebVR together.
-- [someguynamedmatt/gravity](https://github.com/someguynamedmatt/gravity)
-  — compact gravity sim on the same Rust + wasm-bindgen toolchain as
-  this project.
-  - Useful baseline for what the bare wasm-bindgen Rust→JS surface
-    looks like before you layer on SoA / lookup-tables / canvas.
-  - Rust-first with a browser front-end — a gentle entry point for
-    folks new to wasm-bindgen.
-  - Repo's small enough to read end-to-end in one sitting.
-- [zotho/rust_n_body](https://github.com/zotho/rust_n_body) — Rust
-  N-body with a WASM browser demo.
-  - Ships both a native Rust binary and a WASM build from the same
-    crate.
-  - Focuses on the integrator rather than flashy rendering — a good
-    reference for the physics layer in isolation.
-  - Tagged `rust` / `wasm` / `gravity`, which signals the intent
-    clearly.
-- [aestuans/blob](https://github.com/aestuans/blob) — showcase of
-  Rust→WASM through a 2D fluid-and-gravity simulation.
-  - Combines fluid dynamics *and* gravity in one sim rather than
-    treating them as separate demos.
-  - Renders through WebGL directly from the WASM side, so the browser
-    path stays tight.
-  - Intentionally pitched as a *showcase* of the toolchain, which
-    makes the code a friendly reference.
-- [DrA1ex/JS_ParticleSystem](https://github.com/DrA1ex/JS_ParticleSystem)
-  — galaxy-birth simulation handling up to 1,000,000 particles in
-  real time.
-  - Hierarchical spatial-tree approximation drops the per-step cost
-    from O(N²) to O(N log N), as documented in the readme with clear
-    diagrams.
-  - Pluggable CPU and GPGPU backends — the same sim can fall back to
-    CPU or trade accuracy for a GPU-accelerated run.
-  - Record-and-replay simulation player, live query-string parameter
-    tuning, and particle-collision mode — a lot of dials for someone
-    who wants to explore the parameter space.
-- [davrempe/webgl-nbody-sim](https://github.com/davrempe/webgl-nbody-sim)
-  — 3D N-body simulation written in vanilla WebGL.
-  - Keeps the full simulation *and* rendering in a browser tab
-    without a framework wrapper, which is impressive on its own.
-  - 3D (not 2D) N-body rendering — the extra dimension is noticeably
-    harder to tune visually.
-  - No build system or transpile step — cloneable and runnable as-is.
-- [holmgr/gemini](https://github.com/holmgr/gemini) — sci-fi
-  trading-and-smuggling game built around a procedurally generated
-  galaxy, in Rust.
-  - Topics include `parallelism` and `machine-learning`, hinting at
-    more depth in the generation pipeline than a typical procgen toy.
-  - Terminal UI front-end over a Rust core — a tasteful alternative
-    to a browser build.
-  - Crossed the line from "simulation" into "game" with trading and
-    smuggling mechanics layered on top of the physics.
+- [andrewdcampbell/galaxy-sim](https://github.com/andrewdcampbell/galaxy-sim) - real-time browser N-body, Three.js + WebGL, runtime controls and free-orbit camera.
+- [magwo/fullofstars](https://github.com/magwo/fullofstars) - the original real-time N-body galaxy toy this project's art direction takes after. Pure JS + WebGL, no build step.
+- [simbleau/nbody-wasm-sim](https://github.com/simbleau/nbody-wasm-sim) - 2D N-body, Rust + wgpu, force kernel runs as a WebGPU compute shader.
+- [MichaelJCole/n-body-wasm-webvr](https://github.com/MichaelJCole/n-body-wasm-webvr) - browser universe in WebVR, physics in a Web Worker, AssemblyScript -> WASM.
+- [someguynamedmatt/gravity](https://github.com/someguynamedmatt/gravity) - compact gravity sim on the same Rust + wasm-bindgen toolchain. Bare-surface reference.
+- [zotho/rust_n_body](https://github.com/zotho/rust_n_body) - Rust N-body with native + WASM builds from one crate. Integrator-focused.
+- [aestuans/blob](https://github.com/aestuans/blob) - Rust -> WASM showcase, 2D fluid + gravity in one sim, renders WebGL from the WASM side.
+- [DrA1ex/JS_ParticleSystem](https://github.com/DrA1ex/JS_ParticleSystem) - 1M particles in real time. Hierarchical spatial-tree O(N log N) + pluggable CPU/GPGPU backends + record-replay.
+- [davrempe/webgl-nbody-sim](https://github.com/davrempe/webgl-nbody-sim) - 3D N-body in vanilla WebGL, no build step.
+- [holmgr/gemini](https://github.com/holmgr/gemini) - sci-fi trading-and-smuggling over a procedurally generated galaxy. Terminal UI over a Rust core.
 
 ## Contributing
 
@@ -153,6 +80,6 @@ Dev commands are declared in [`.coily/coily.yaml`](.coily/coily.yaml). Run them 
 
 - [AGENTS.md](AGENTS.md) - agent-facing operating rules.
 - [docs/FEATURES.md](docs/FEATURES.md) - inventory of what ships today.
-- [.coily/coily.yaml](.coily/coily.yaml) - allowlisted commands. Agents route through coily, not bare `make` / `uv` / `python` / `npm` / `cargo` / `dotnet`.
+- [.coily/coily.yaml](.coily/coily.yaml) - allowlisted commands.
 
-Cross-reference convention from [coilysiren/agentic-os-kai#313](https://github.com/coilysiren/agentic-os-kai/issues/313).
+Cross-reference convention from [coilysiren/agentic-os#59](https://github.com/coilysiren/agentic-os/issues/59).

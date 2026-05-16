@@ -35,16 +35,7 @@ make dev-rust          # cargo watch → wasm-pack build --dev
 make build-js-prod     # production webpack build
 ```
 
-Raw commands if you need them:
-
-- `cargo test` - Rust unit tests (fast).
-- `cargo clippy -- -D warnings` - Rust lint.
-- `cargo fmt` - Rust formatter.
-- `wasm-pack build` - compile to WASM, output in `pkg/` (gitignored).
-- `npm run dev` - webpack-dev-server with HMR on port 8080.
-- `npm run test:e2e` - Playwright (builds WASM first via `pretest:e2e`).
-- `npm run test:e2e:ui` - Playwright UI mode (time-travel debugger).
-- `npm run lint` / `npm run format` - ESLint / Prettier over `src/` + `e2e/`.
+Raw commands: `cargo test`, `cargo clippy -- -D warnings`, `cargo fmt`, `wasm-pack build` (output `pkg/`, gitignored), `npm run dev` (HMR :8080), `npm run test:e2e[:ui]` (Playwright), `npm run lint` / `format`.
 
 ## Conventions
 
@@ -90,6 +81,6 @@ Route every dev command through coily, which reads [`.coily/coily.yaml`](.coily/
 
 - [README.md](README.md) - human-facing intro.
 - [docs/FEATURES.md](docs/FEATURES.md) - inventory of what ships today.
-- [.coily/coily.yaml](.coily/coily.yaml) - allowlisted commands. Agents route through coily, not bare `make` / `uv` / `python` / `npm` / `cargo` / `dotnet`.
+- [.coily/coily.yaml](.coily/coily.yaml) - allowlisted commands.
 
-Cross-reference convention from [coilysiren/agentic-os-kai#313](https://github.com/coilysiren/agentic-os-kai/issues/313).
+Cross-reference convention from [coilysiren/agentic-os#59](https://github.com/coilysiren/agentic-os/issues/59).
