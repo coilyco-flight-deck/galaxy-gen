@@ -1,6 +1,6 @@
 # Skill handbook for galaxy-gen
 
-Companion to [`../SKILL.md`](../SKILL.md). Structural reference for the `.claude/skills/` surface in this repo. Rules below are enforced by the hooks subscribed from [claude-skill-discipline](https://github.com/coilysiren/claude-skill-discipline) against [`.claude/skills/categories.yaml`](../../categories.yaml).
+Companion to [`../SKILL.md`](../SKILL.md). Structural reference for the `.claude/skills/` surface in this repo. Rules below are enforced by the hooks subscribed from [agentic-os](https://github.com/coilysiren/agentic-os) against [`.claude/skills/categories.yaml`](../../categories.yaml).
 
 The machine-readable spec is `categories.yaml`. When this file and the YAML disagree, the YAML is authoritative. Update both together.
 
@@ -16,7 +16,7 @@ galaxy-gen/
 │   └── tooling-skill-authoring/
 │       ├── SKILL.md
 │       └── references/handbook.md
-└── .pre-commit-config.yaml         # subscribes to claude-skill-discipline
+└── .pre-commit-config.yaml         # subscribes to agentic-os
 ```
 
 Flat is the only shape. Nested skill directories are invisible to the loader.
@@ -81,15 +81,15 @@ The hooks below run on every commit. All must pass.
 
 * `trufflehog` - offline secret scan (local hook).
 * `coily-trailer` - audit-log trailer (local hook, requires the coily CLI).
-* `skill-conventions` - structure, size, prefix taxonomy. From [claude-skill-discipline](https://github.com/coilysiren/claude-skill-discipline).
-* `dead-cross-links` - resolves every inline markdown link inside `.claude/skills/` to a real file. From claude-skill-discipline.
-* `commit-closes-issue` - commit-msg gate requiring `closes #N` for a same-repo issue. From claude-skill-discipline.
+* `skill-conventions` - structure, size, prefix taxonomy. From [agentic-os](https://github.com/coilysiren/agentic-os).
+* `dead-cross-links` - resolves every inline markdown link inside `.claude/skills/` to a real file. From agentic-os.
+* `commit-closes-issue` - commit-msg gate requiring `closes #N` for a same-repo issue. From agentic-os.
 
 Run all hooks manually for faster feedback: `pre-commit run --all-files`.
 
 ## 8. Upgrading
 
-Bump `rev:` for the `claude-skill-discipline` block in `.pre-commit-config.yaml` to pick up new hook versions. Run `pre-commit autoupdate` to do this in bulk. Always re-run the suite after a bump.
+Bump `rev:` for the `agentic-os` block in `.pre-commit-config.yaml` to pick up new hook versions. Run `pre-commit autoupdate` to do this in bulk. Always re-run the suite after a bump.
 
 ## 9. When to escalate
 
