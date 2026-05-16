@@ -51,7 +51,7 @@ Canvas (not SVG) renderer: single `<canvas>` per frame; SVG `setAttribute` was a
 
 ## Known scope-shape signals
 
-README lists nine inspirational sibling projects; consult when evaluating scope adds. Already pulled in: WebGPU compute kernel, worker-based physics, reproducible seeding + URL params. The Python predecessor `galaxySim` is explicitly retired. `docs/perf-rewrite.md` documents the SoA + cartesian + lookup-table rewrite; treat as load-bearing for the inner loop.
+README lists nine inspirational sibling projects; consult when evaluating scope adds. Already pulled in: WebGPU compute kernel, worker-based physics, reproducible seeding + URL params. `docs/perf-rewrite.md` documents the SoA + cartesian + lookup-table rewrite; treat as load-bearing for the inner loop.
 
 ## See also
 

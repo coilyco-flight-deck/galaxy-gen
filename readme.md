@@ -5,8 +5,6 @@
 [wasm-pack](https://github.com/rustwasm/wasm-pack), rendered in the browser
 with React + [D3](https://d3js.org/).
 
-Previous version (Python): [coilysiren/galaxySim](https://github.com/coilysiren/galaxySim).
-
 ## Quick start
 
 ```bash
