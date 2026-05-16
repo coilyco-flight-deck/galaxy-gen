@@ -18,50 +18,17 @@ repos:
         always_run: true
         require_serial: true
 
-  # BEGIN managed by agentic-os-kai/scripts/apply-skill-discipline-hooks.py
-  - repo: local
+  
+  
+  
+  # BEGIN managed by agentic-os/scripts/apply-agentic-os-hooks.py
+  - repo: https://github.com/coilysiren/agentic-os
+    rev: v0.2.1
     hooks:
-      - id: validate-skills
-        name: skill conventions
-        description: Validate the structure of .claude/skills/ against .claude/skills/categories.yaml.
-        entry: python scripts/validate-skills.py
-        language: python
-        additional_dependencies: [pyyaml]
-        pass_filenames: false
-        always_run: true
-        stages: [pre-commit, pre-push]
-
-      - id: check-dead-links
-        name: dead cross-links
-        description: Validate that inline markdown links inside .claude/skills/ resolve to real files.
-        entry: python scripts/check-dead-links.py
-        language: python
-        pass_filenames: false
-        always_run: true
-        stages: [pre-commit, pre-push]
-  # END managed by agentic-os-kai/scripts/apply-skill-discipline-hooks.py
-
-  # BEGIN managed by agentic-os-kai/scripts/apply-commit-msg-hook.py
-  - repo: local
-    hooks:
-      - id: closes-issue
-        name: commit closes a GitHub issue
-        description: Reject commit messages without a GitHub closing keyword (closes/fixes/resolves #N).
-        entry: python3 scripts/check-commit-closes-issue.py
-        language: system
-        stages: [commit-msg]
-  # END managed by agentic-os-kai/scripts/apply-commit-msg-hook.py
-
-  # BEGIN managed by agentic-os-kai/scripts/apply-catalog-block-hook.py
-  - repo: local
-    hooks:
+      # catalog-doc-size + catalog-trifecta deferred until trim issue lands.
       - id: catalog-block-present
-        name: .coily/coily.yaml catalog block present
-        description: Assert this repo declares its catalog metadata. See coilysiren/agentic-os-kai#420.
-        entry: python scripts/check-catalog-block.py
-        language: python
-        additional_dependencies: [pyyaml]
-        always_run: true
-        pass_filenames: false
-        stages: [pre-commit]
-  # END managed by agentic-os-kai/scripts/apply-catalog-block-hook.py
+      - id: validate-skills
+      - id: dead-cross-links
+      - id: closes-issue
+      - id: conventional-commit
+  # END managed by agentic-os/scripts/apply-agentic-os-hooks.py
