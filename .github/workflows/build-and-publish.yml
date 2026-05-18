@@ -67,16 +67,22 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     needs: build-publish
+    permissions:
+      id-token: write
+      contents: read
     steps:
       - uses: actions/checkout@v6
-      # The action auths with an ephemeral authkey and brings tailscale up.
-      # A second `sudo tailscale up` to advertise flags would try to reauth
-      # without a key and hang; push the flags into the action's inputs
-      # instead. Hostname is per-run to avoid machine-key collisions.
-      - uses: tailscale/github-action@v3
+      # OIDC: GitHub mints a short-lived token, Tailscale verifies the
+      # subject claim against the per-repo federated identity in
+      # infrastructure/terraform/tailscale-oidc/. TS_CLIENT_ID + TS_AUDIENCE
+      # are the only secrets that sit in this repo - no long-lived bearer.
+      # A second `sudo tailscale up` would try to reauth without a key and
+      # hang, so push the flags into the action's inputs instead. Hostname
+      # is per-run to avoid machine-key collisions.
+      - uses: tailscale/github-action@v4
         with:
-          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
-          oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
+          oauth-client-id: ${{ secrets.TS_CLIENT_ID }}
+          audience: ${{ secrets.TS_AUDIENCE }}
           tags: tag:ci
           args: --accept-dns --accept-routes
           hostname: github-actions-${{ github.run_id }}
