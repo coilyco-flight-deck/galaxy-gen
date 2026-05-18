@@ -40,103 +40,43 @@ jobs:
           path: playwright-report/
           retention-days: 14
 
-  build-publish:
+  deploy:
     runs-on: ubuntu-latest
     needs: test
     permissions:
+      id-token: write
       contents: read
-      packages: write
     steps:
       - uses: actions/checkout@v6
-      - uses: docker/login-action@v3
+      # OIDC: GitHub mints a short-lived token, Tailscale verifies the
+      # subject against the per-repo federated identity in
+      # infrastructure/terraform/tailscale-oidc/. No long-lived bearer
+      # in the repo, no ghcr.io push, no kubeconfig in CI - just an SSH
+      # tunnel to kai-server.
+      - uses: tailscale/github-action@v4
         with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      # SENTRY_DSN is baked into the JS bundle at build time via webpack
-      # DefinePlugin. The GH secret is synced from /sentry-dsn/galaxy-gen in
-      # AWS SSM via `aws ssm get-parameter ... | gh secret set SENTRY_DSN`,
-      # same local-sync pattern as TS_OAUTH_*. See infrastructure/docs/k3s-deploy-notes.md.
-      - name: build docker
-        env:
-          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
-        run: name=coilysiren-galaxy-gen make .build-docker
-      - run: docker tag coilysiren-galaxy-gen:latest ghcr.io/${{ github.repository }}/coilysiren-galaxy-gen:${{ github.sha }}
-      - run: docker push ghcr.io/${{ github.repository }}/coilysiren-galaxy-gen:${{ github.sha }}
-
-  deploy:
-    runs-on: ubuntu-latest
-    needs: build-publish
-    steps:
-      - uses: actions/checkout@v6
-      # The action auths with an ephemeral authkey and brings tailscale up.
-      # A second `sudo tailscale up` to advertise flags would try to reauth
-      # without a key and hang; push the flags into the action's inputs
-      # instead. Hostname is per-run to avoid machine-key collisions.
-      - uses: tailscale/github-action@v3
-        with:
-          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
-          oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
+          oauth-client-id: ${{ secrets.TS_CLIENT_ID }}
+          audience: ${{ secrets.TS_AUDIENCE }}
           tags: tag:ci
+          use-cache: "true"
           args: --accept-dns --accept-routes
           hostname: github-actions-${{ github.run_id }}
-      - name: Install kubectl
-        run: |
-          curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-          sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
-      - name: kubeconfig
-        # NOTE: K8S_SERVER must be the tailnet IP literal (not MagicDNS).
-        # Matches coilysiren/eco-spec-tracker and coilysiren/backend exactly.
-        run: |
-          mkdir -p ~/.kube
-          cat <<EOF > ~/.kube/config
-          apiVersion: v1
-          kind: Config
-          clusters:
-          - name: default
-            cluster:
-              server: ${{ secrets.K8S_SERVER }}
-              certificate-authority-data: ${{ secrets.K8S_CA_DATA }}
-          contexts:
-          - name: default
-            context:
-              cluster: default
-              user: default
-          current-context: default
-          preferences: {}
-          users:
-          - name: default
-            user:
-              client-certificate-data: ${{ secrets.K8S_CLIENT_CERT_DATA }}
-              client-key-data: ${{ secrets.K8S_CLIENT_KEY_DATA }}
-          EOF
-      - run: make .deploy
-      - name: rollout status
+      # SENTRY_DSN is baked into the JS bundle at build time via webpack
+      # DefinePlugin. The GH secret is synced from /sentry-dsn/galaxy-gen
+      # in AWS SSM via `aws ssm get-parameter ... | gh secret set
+      # SENTRY_DSN`.
+      - name: Build, ship, roll
         env:
-          NS: coilysiren-galaxy-gen
-          DEP: coilysiren-galaxy-gen-app
-        run: kubectl -n "$NS" rollout status deployment/"$DEP" --timeout=10m
-      - name: rollout diagnostics on failure
-        if: failure()
-        env:
-          NS: coilysiren-galaxy-gen
-          DEP: coilysiren-galaxy-gen-app
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
         run: |
-          echo "::group::pods"
-          kubectl -n "$NS" get pods -o wide || true
-          echo "::endgroup::"
-          echo "::group::describe deployment"
-          kubectl -n "$NS" describe deployment "$DEP" || true
-          echo "::endgroup::"
-          echo "::group::describe pods"
-          kubectl -n "$NS" describe pods -l app="$DEP" || true
-          echo "::endgroup::"
-          echo "::group::events"
-          kubectl -n "$NS" get events --sort-by=.lastTimestamp | tail -50 || true
-          echo "::endgroup::"
-          echo "::group::logs (current)"
-          kubectl -n "$NS" logs --tail=200 -l app="$DEP" --all-containers=true || true
-          echo "::endgroup::"
-          echo "::group::logs (previous)"
-          kubectl -n "$NS" logs --tail=200 -l app="$DEP" --all-containers=true --previous || true
-          echo "::endgroup::"
+          set -euo pipefail
+          IMAGE=coilysiren-galaxy-gen:${{ github.sha }}
+          name=coilysiren-galaxy-gen make .build-docker
+          docker tag coilysiren-galaxy-gen:latest "$IMAGE"
+          docker save "$IMAGE" | \
+            tailscale ssh deploy@kai-server \
+              "sudo k3s ctr -n k8s.io images import -"
+          tailscale ssh deploy@kai-server \
+            "kubectl -n coilysiren-galaxy-gen set image deploy/coilysiren-galaxy-gen-app coilysiren-galaxy-gen=$IMAGE"
+          tailscale ssh deploy@kai-server \
+            "kubectl -n coilysiren-galaxy-gen rollout status deploy/coilysiren-galaxy-gen-app --timeout=2m"
