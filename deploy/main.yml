@@ -33,6 +33,67 @@ spec:
         key: /github/pat
 
 ---
+# Tailnet device for this service. Auth key minted by
+# terraform/tailscale-devices/ in coilysiren/infrastructure under the
+# short name `galaxy-gen`; lands in SSM at /coilysiren/galaxy-gen/
+# ts-authkey and the ExternalSecret below materializes it into the
+# namespace.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: ${NAME}-ts
+  namespace: ${NAME}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: ${NAME}-ts-state
+  namespace: ${NAME}
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["create"]
+  - apiGroups: [""]
+    resources: ["secrets"]
+    resourceNames: ["ts-state"]
+    verbs: ["get", "update", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: ${NAME}-ts-state
+  namespace: ${NAME}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: ${NAME}-ts-state
+subjects:
+  - kind: ServiceAccount
+    name: ${NAME}-ts
+    namespace: ${NAME}
+---
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: ts-authkey
+  namespace: ${NAME}
+spec:
+  refreshInterval: 1h
+  secretStoreRef:
+    name: aws-parameter-store
+    kind: ClusterSecretStore
+  target:
+    name: ts-authkey
+    creationPolicy: Owner
+    template:
+      type: Opaque
+      data:
+        authkey: "{{ .authkey }}"
+  data:
+    - secretKey: authkey
+      remoteRef:
+        key: /coilysiren/galaxy-gen/ts-authkey
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -50,6 +111,11 @@ spec:
       labels:
         app: ${NAME}-app
     spec:
+      serviceAccountName: ${NAME}-ts
+      # /dev/net/tun for the ts sidecar lives on kai-server (native
+      # Linux 6.8); WSL2 nodes don't expose it.
+      nodeSelector:
+        kubernetes.io/hostname: kai-server
       imagePullSecrets:
         - name: docker-registry
       containers:
@@ -63,22 +129,57 @@ spec:
               cpu: "250m"
               memory: "128Mi"
           env:
+            # Bind 80 so tailnet peers can hit `http://galaxy-gen`
+            # without a port suffix. Caddy reads $PORT; the official
+            # caddy image runs as root, so no NET_BIND_SERVICE needed.
             - name: PORT
-              value: "8080"
+              value: "80"
           ports:
-            - containerPort: 8080
+            - containerPort: 80
           readinessProbe:
             httpGet:
               path: /healthz
-              port: 8080
+              port: 80
             initialDelaySeconds: 2
             periodSeconds: 10
           livenessProbe:
             httpGet:
               path: /healthz
-              port: 8080
+              port: 80
             initialDelaySeconds: 10
             periodSeconds: 30
+        # tailscale sidecar in kernel mode. Same shape as the canary
+        # at coilysiren/infrastructure#201 and the eco-* migrations.
+        - name: ts
+          image: tailscale/tailscale:v1.78.1
+          env:
+            - name: TS_HOSTNAME
+              value: galaxy-gen
+            - name: TS_KUBE_SECRET
+              value: ts-state
+            - name: TS_USERSPACE
+              value: "false"
+            - name: TS_AUTH_ONCE
+              value: "true"
+            - name: TS_EXTRA_ARGS
+              value: "--accept-dns=false"
+            - name: TS_AUTHKEY
+              valueFrom:
+                secretKeyRef:
+                  name: ts-authkey
+                  key: authkey
+          securityContext:
+            privileged: true
+            runAsUser: 0
+            runAsGroup: 0
+            runAsNonRoot: false
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
       restartPolicy: Always
 
 ---
@@ -87,15 +188,13 @@ kind: Service
 metadata:
   name: ${NAME}-service
   namespace: ${NAME}
-  annotations:
-    tailscale.com/expose: "true"
 spec:
   type: ClusterIP
   selector:
     app: ${NAME}-app
   ports:
     - port: 80
-      targetPort: 8080
+      targetPort: 80
       protocol: TCP
 
 ---
