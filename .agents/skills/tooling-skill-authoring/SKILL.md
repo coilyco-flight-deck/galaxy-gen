@@ -1,11 +1,11 @@
 ---
 name: tooling-skill-authoring
-description: Skill-authoring discipline for this repo. Local categories.yaml, hooks stamped from agentic-os via agentic-os-kai. Triggers - skill, SKILL.md, frontmatter, categories.yaml, .claude/skills, skill authoring, skill hygiene, add skill, new skill, skill prefix, pre-commit hook fail.
+description: Skill-authoring discipline for this repo. Local categories.yaml, hooks stamped from agentic-os via agentic-os-kai. Triggers - skill, SKILL.md, frontmatter, categories.yaml, .agents/skills, skill authoring, skill hygiene, add skill, new skill, skill prefix, pre-commit hook fail.
 ---
 
 # Skill authoring for galaxy-gen
 
-Discipline document for the `.claude/skills/` surface in this repo. The skill content and the categories spec live here. The validator and link checker run as pre-commit hooks stamped from canonical copies in [`coilysiren/agentic-os/scripts/`](https://github.com/coilysiren/agentic-os/tree/main/scripts) via `make apply-skill-discipline-hooks` in `agentic-os-kai` (see [agentic-os-kai#544](https://github.com/coilysiren/agentic-os-kai/issues/544)).
+Discipline document for the `.agents/skills/` surface in this repo. The skill content and the categories spec live here. The validator and link checker run as pre-commit hooks stamped from canonical copies in [`coilysiren/agentic-os/scripts/`](https://github.com/coilysiren/agentic-os/tree/main/scripts) via `make apply-skill-discipline-hooks` in `agentic-os-kai` (see [agentic-os-kai#544](https://github.com/coilysiren/agentic-os-kai/issues/544)).
 
 Full structural rules are in [`references/handbook.md`](references/handbook.md).
 
@@ -13,7 +13,7 @@ Full structural rules are in [`references/handbook.md`](references/handbook.md).
 
 ```
 galaxy-gen/
-├── .claude/skills/
+├── .agents/skills/
 │   ├── categories.yaml             # spec consumed by the skill-conventions hook
 │   ├── coding-galaxy-gen-*/        # per-skill directories
 │   │   └── SKILL.md
@@ -23,7 +23,7 @@ galaxy-gen/
 └── .pre-commit-config.yaml         # managed block stamped by agentic-os-kai
 ```
 
-All skills sit flat under `.claude/skills/`. No nesting. Sub-skill directories are invisible to the harness loader.
+All skills sit flat under `.agents/skills/`. No nesting. Sub-skill directories are invisible to the harness loader.
 
 ## Categories
 
@@ -50,10 +50,10 @@ The `description` field is what the harness keyword-matches for triggering. Lead
 ## Authoring loop
 
 1. Pick the prefix. If none fits, add to `categories.yaml` first.
-2. Create `.claude/skills/<name>/SKILL.md` with frontmatter + body.
+2. Create `.agents/skills/<name>/SKILL.md` with frontmatter + body.
 3. Stage with `git add` and commit. The pre-commit hooks run automatically:
-   - `skill-conventions` - structure, size, prefix taxonomy. Reads `.claude/skills/categories.yaml`.
-   - `dead-cross-links` - inline `[text](path.md)` targets inside `.claude/skills/` must resolve.
+   - `skill-conventions` - structure, size, prefix taxonomy. Reads `.agents/skills/categories.yaml`.
+   - `dead-cross-links` - inline `[text](path.md)` targets inside `.agents/skills/` must resolve.
    - `commit-closes-issue` - commit message must close a same-repo GitHub issue.
    - `trufflehog` - secret scan (local hook).
    - `coily-trailer` - audit-log trailer (local hook, requires the coily CLI).
@@ -78,7 +78,7 @@ Shape: lead with the rule, then a **Why:** line (incident, constraint, prior fai
 
 ## Skills are flat, not nested
 
-Every skill is a peer directory directly under `.claude/skills/`. Do not nest sub-skills inside another skill's directory. Nested-skill discovery is poorly supported by the harness.
+Every skill is a peer directory directly under `.agents/skills/`. Do not nest sub-skills inside another skill's directory. Nested-skill discovery is poorly supported by the harness.
 
 **How to apply:** routing tables in a meta-skill name peer-skill names, not paths into the meta's own dir. New routed skills get their own top-level directory.
 

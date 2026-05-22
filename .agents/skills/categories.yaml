@@ -1,8 +1,8 @@
-# Skill-category spec for galaxy-gen/.claude/skills/.
+# Skill-category spec for galaxy-gen/.agents/skills/.
 #
 # Source of truth for scripts/validate_skills.py. The human-readable
 # discipline is in
-# .claude/skills/tooling-skill-authoring/references/handbook.md.
+# .agents/skills/tooling-skill-authoring/references/handbook.md.
 # Keep this file and the handbook in sync.
 #
 # Each category entry is either a prefix family or an exact-name skill.

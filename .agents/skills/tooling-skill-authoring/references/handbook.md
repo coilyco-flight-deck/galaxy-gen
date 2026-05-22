@@ -1,6 +1,6 @@
 # Skill handbook for galaxy-gen
 
-Companion to [`../SKILL.md`](../SKILL.md). Structural reference for the `.claude/skills/` surface in this repo. Rules below are enforced by the hooks subscribed from [agentic-os](https://github.com/coilysiren/agentic-os) against [`.claude/skills/categories.yaml`](../../categories.yaml).
+Companion to [`../SKILL.md`](../SKILL.md). Structural reference for the `.agents/skills/` surface in this repo. Rules below are enforced by the hooks subscribed from [agentic-os](https://github.com/coilysiren/agentic-os) against [`.agents/skills/categories.yaml`](../../categories.yaml).
 
 The machine-readable spec is `categories.yaml`. When this file and the YAML disagree, the YAML is authoritative. Update both together.
 
@@ -8,7 +8,7 @@ The machine-readable spec is `categories.yaml`. When this file and the YAML disa
 
 ```
 galaxy-gen/
-├── .claude/skills/
+├── .agents/skills/
 │   ├── categories.yaml
 │   ├── coding-galaxy-gen-*/
 │   │   ├── SKILL.md
@@ -82,7 +82,7 @@ The hooks below run on every commit. All must pass.
 * `trufflehog` - offline secret scan (local hook).
 * `coily-trailer` - audit-log trailer (local hook, requires the coily CLI).
 * `skill-conventions` - structure, size, prefix taxonomy. From [agentic-os](https://github.com/coilysiren/agentic-os).
-* `dead-cross-links` - resolves every inline markdown link inside `.claude/skills/` to a real file. From agentic-os.
+* `dead-cross-links` - resolves every inline markdown link inside `.agents/skills/` to a real file. From agentic-os.
 * `commit-closes-issue` - commit-msg gate requiring `closes #N` for a same-repo issue. From agentic-os.
 
 Run all hooks manually for faster feedback: `pre-commit run --all-files`.
