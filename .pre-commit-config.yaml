@@ -18,15 +18,14 @@ repos:
         always_run: true
         require_serial: true
 
-  
-  
-  
   # BEGIN managed by agentic-os/scripts/apply-agentic-os-hooks.py
   - repo: https://github.com/coilysiren/agentic-os
-    rev: v0.2.2
+    rev: v0.2.6
     hooks:
       - id: catalog-doc-size
       - id: catalog-trifecta
+      - id: documentation-layout
+      - id: code-comments
       - id: catalog-block-present
       - id: validate-skills
       - id: dead-cross-links
