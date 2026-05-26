@@ -1,6 +1,4 @@
-// Native perf bench: build a galaxy, run N ticks, report wall-clock.
-// Run with: cargo run --release --bin tick_bench
-// (Added as a [[bin]] in Cargo.toml.)
+// Native perf bench. Run: cargo run --release --bin tick_bench
 
 use galaxy_gen_backend::galaxy::Galaxy;
 use std::time::Instant;

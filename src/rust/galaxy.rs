@@ -1,38 +1,18 @@
-//! Galaxy simulation — cell grid, Newtonian gravity, in-place tick.
-//!
-//! Data is stored as Struct-of-Arrays (parallel `Vec<f32>` / `Vec<u16>`) so
-//! the physics inner loop is a tight numeric kernel the optimizer can
-//! auto-vectorize. Acceleration is accumulated in cartesian (ax, ay) — the
-//! old polar (magnitude, degrees) representation required four trig calls
-//! per pair, which dominated the tick cost.
-//!
-//! Hot path is `tick()`:
-//!   1. `gravitate_all()` — O(N²/2) pair sweep, symmetric (Newton's 3rd
-//!      law). Skips mass=0 on either side.
-//!   2. `apply_acceleration()` — integrate one step, reassign cells to
-//!      destination grid indices, accumulate mass on collision. Uses a
-//!      `Vec<u32>` (size N²) instead of a `HashMap` to coalesce masses.
-//!
-//! `tick` returns a new `Galaxy` to preserve the existing JS API, but
-//! internally reuses scratch buffers and moves the resulting arrays.
+//! Galaxy simulation. See docs/galaxy-rust.md.
 
 use rand::rngs::StdRng;
 use rand::{Rng, RngExt, SeedableRng};
 use wasm_bindgen::prelude::*;
 
-/// Initial-condition presets selectable from the UI. Each produces a
-/// visibly different long-term evolution; see `seed_with_mode` for the
-/// per-mode mass and velocity distributions.
+/// Initial-condition presets. See `seed_with_mode`.
 #[wasm_bindgen]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum InitialCondition {
     /// Current behavior: uniform random mass across the grid, zero initial velocity.
     Uniform = 0,
-    /// Disk with angular velocity — cells get tangential velocity around the
-    /// grid center scaled by distance, producing a rotating galaxy.
+    /// Rotating disk: tangential velocity scaled by distance from center.
     Rotation = 1,
-    /// Big-bang-style central explosion — mass concentrated in the center,
-    /// outward radial velocity.
+    /// Central explosion: mass concentrated, outward radial velocity.
     Bang = 2,
     /// Two distinct mass clusters on intercept trajectory.
     Collision = 3,
@@ -47,43 +27,21 @@ pub struct Galaxy {
     acc_x: Vec<f32>,
     acc_y: Vec<f32>,
 
-    // Persistent velocity (per mass bucket). Without this the sim
-    // restarts from rest every tick and produces imperceptible motion.
+    // See docs/galaxy-rust.md for buffer layout rationale.
     vel_x: Vec<f32>,
     vel_y: Vec<f32>,
-
-    // Sub-grid fractional offsets so a cell can "accumulate" toward its
-    // next grid cell across several ticks instead of snapping immediately.
     frac_x: Vec<f32>,
     frac_y: Vec<f32>,
-
-    // Integer (x, y) for each cell. Since grid positions are integers we
-    // can take the diff as int and index an inv-r³ lookup with r² — no
-    // `sqrt` in the hot loop.
     xs_i: Vec<i16>,
     ys_i: Vec<i16>,
-
-    // Precomputed `g · (r² + soft)^(-3/2)` indexed by integer r². Size-
-    // dependent: populated in `new()` and re-used across seeds/ticks.
     inv_r3: Vec<f32>,
-
-    // Scratch buffers reused across ticks.
     scratch_mass: Vec<u32>,
 }
 
 impl Galaxy {
-    // Newton's G is ~6.67e-11 in SI. At this grid scale (distances of 1-100,
-    // masses of 1-65535) that's numerically invisible. Pick a value big
-    // enough to produce motion in a reasonable number of ticks; the
-    // velocity integrator (`apply_acceleration`) caps step size via
-    // `MAX_SUBGRID_STEP` so blowup isn't a concern even if G is punchy.
+    // See docs/galaxy-rust.md for constant rationale.
     pub const GRAVATIONAL_CONSTANT: f32 = 5.0e-2;
-
-    // Softening length to avoid division by ~0 when cells share a grid cell.
     const SOFTENING_SQ: f32 = 1.0;
-
-    // Cap the per-tick position delta so we don't teleport halfway across
-    // the grid on a tight mass concentration.
     const MAX_SUBGRID_STEP: f32 = 0.5;
 }
 
@@ -135,10 +93,8 @@ impl Galaxy {
         self.seed_with_mode(additional, InitialCondition::Uniform)
     }
 
-    /// Seed the galaxy with a named initial condition. Each mode produces
-    /// a distinct long-term evolution. Tuning constants are chosen so that
-    /// the default UI params (size=50, seed_mass=25) produce visible motion
-    /// within a few hundred ticks.
+    /// Seed with a named initial condition. Tuning constants assume
+    /// default UI params (size=50, seed_mass=25).
     pub fn seed_with_mode(&self, additional: u16, mode: InitialCondition) -> Galaxy {
         let mut rng = rand::rng();
         let mut mass = self.mass.clone();
@@ -158,14 +114,8 @@ impl Galaxy {
                 }
             }
             InitialCondition::Rotation => {
-                // Fill the grid with a random mass bias (like uniform) so
-                // there's something to rotate, then give each cell a
-                // tangential velocity around the center. Magnitude grows
-                // with distance so the disk rotates roughly rigid-body-like
-                // until gravity pulls it into arms.
                 let base = additional.max(1);
-                // Peak velocity tuned so a 50-grid takes a few hundred ticks
-                // to complete one revolution at dt=0.5.
+                // V_SCALE tuned so 50-grid takes ~hundreds of ticks per rev at dt=0.5.
                 const V_SCALE: f32 = 0.6;
                 let max_r = (size * 0.5).max(1.0);
                 for i in 0..self.n {
@@ -183,19 +133,12 @@ impl Galaxy {
                 }
             }
             InitialCondition::Bang => {
-                // Concentrate mass in a small disc at the center and give
-                // every massed cell an outward radial velocity. Produces
-                // an expanding ring that gravity can later re-collapse.
-                // Clear baseline mass; we want a visible central cluster
-                // against empty space.
                 for m in mass.iter_mut() {
                     *m = 0;
                 }
                 let core_radius = (size * 0.15).max(2.0);
                 let core_r2 = core_radius * core_radius;
-                // Average mass per cell in the core, scaled by how many
-                // cells we're squeezing into. Use `additional` (which
-                // acts as an "intensity" knob via the seed-mass slider).
+                // `additional` acts as the intensity knob (seed-mass slider).
                 let core_fill = additional.max(1000);
                 const V_SCALE: f32 = 1.5;
                 for i in 0..self.n {
@@ -215,9 +158,7 @@ impl Galaxy {
                 }
             }
             InitialCondition::Collision => {
-                // Two disc-shaped clusters offset horizontally, each given
-                // a velocity toward the other plus a small vertical offset
-                // so they graze rather than perfectly head-on.
+                // Vertical offset makes them graze rather than perfectly head-on.
                 for m in mass.iter_mut() {
                     *m = 0;
                 }
@@ -271,10 +212,8 @@ impl Galaxy {
         }
     }
 
-    /// Reproducible variant of [`seed`] that draws randomness from a
-    /// `u64`-seeded ChaCha-based RNG (`StdRng`). Two galaxies seeded with
-    /// the same `(additional, seed)` pair produce byte-identical state —
-    /// this is what enables `?seed=…` URL sharing on the JS side.
+    /// Reproducible [`seed`] variant. Same `(additional, seed)` gives
+    /// byte-identical state, enabling `?seed=...` URL sharing.
     pub fn seed_with(&self, additional: u16, seed: u64) -> Galaxy {
         let mut rng = StdRng::seed_from_u64(seed);
         self.seed_with_rng(additional, &mut rng)
@@ -301,17 +240,8 @@ impl Galaxy {
         next
     }
 
-    /// Tick path for external force providers (e.g. a WebGPU compute
-    /// shader that computes accelerations in JS). Skips `gravitate_all`
-    /// and uses the caller-supplied `acc_x` / `acc_y` (each length `n`)
-    /// as the per-cell acceleration for the integration step.
-    ///
-    /// Collisions and the semi-implicit Euler integrator are still done
-    /// on the CPU - this matches the Rust `tick()` behaviour exactly
-    /// aside from where the forces were computed.
-    ///
-    /// Mismatched slice lengths are defensively treated as zero-force
-    /// so a bad caller can't panic across the WASM boundary.
+    /// Tick using externally-computed forces (e.g. WebGPU compute shader).
+    /// Mismatched slice lengths default to zero-force.
     pub fn tick_with_accel(&self, time: f32, acc_x: &[f32], acc_y: &[f32]) -> Galaxy {
         let n = self.n;
         let mut next = Galaxy {
@@ -349,8 +279,7 @@ impl Galaxy {
         self.n
     }
 
-    // Positions are pure functions of index + size; JS can derive these
-    // without a copy. Kept as convenience for tests and older callers.
+    // Positions derivable from index + size. Kept for tests/older callers.
     pub fn mass(&self) -> Vec<u16> {
         self.mass.clone()
     }
@@ -365,15 +294,7 @@ impl Galaxy {
             .collect()
     }
 
-    // --- State transfer (for moving sim state to/from a Web Worker) ---
-    //
-    // These expose the mutable per-cell state (mass + velocity + frac)
-    // as flat typed arrays so the JS side can ship them between threads
-    // via postMessage with transferable ArrayBuffers (zero copy).
-    //
-    // Derived buffers (acc_x, acc_y) are recomputed each tick so they
-    // don't need to round-trip. `xs_i`, `ys_i`, `inv_r3` are size-only
-    // dependent so they're rebuilt on construction.
+    // State-transfer accessors for Worker round-trip via transferable buffers.
     pub fn vel_x(&self) -> Vec<f32> {
         self.vel_x.clone()
     }
@@ -387,9 +308,7 @@ impl Galaxy {
         self.frac_y.clone()
     }
 
-    /// Construct a Galaxy from an explicit state snapshot — inverse of the
-    /// `mass()/vel_x()/vel_y()/frac_x()/frac_y()` getters. Used to hydrate
-    /// a worker-side Galaxy from main-thread state (and vice versa).
+    /// Hydrate a Galaxy from a state snapshot. Inverse of the getters.
     pub fn from_state(
         size: u16,
         mass: Vec<u16>,
@@ -424,10 +343,7 @@ impl Galaxy {
 }
 
 impl Galaxy {
-    /// Shared seeding kernel used by both the non-deterministic `seed()`
-    /// and the reproducible `seed_with(additional, seed)`. Splitting on
-    /// RNG lets the two expose different public APIs (wasm-bindgen doesn't
-    /// take generics) while keeping the mass-fill loop identical.
+    /// Shared seeding kernel. wasm-bindgen can't take generics, hence the split.
     fn seed_with_rng<R: Rng + ?Sized>(&self, additional: u16, rng: &mut R) -> Galaxy {
         let mut mass = self.mass.clone();
         if additional > 0 {
@@ -463,23 +379,11 @@ impl Galaxy {
         row * self.size + col
     }
 
-    /// Dispatches between two force-calc strategies:
-    ///   * **Direct O(N²)** for small active sets, where building a tree
-    ///     costs more than it saves. Uses an integer-r² lookup so the
-    ///     inner loop has no sqrt. O(A²) where A is active cell count.
-    ///   * **Barnes-Hut quadtree O(N log N)** for large active sets.
-    ///     Each body traverses the tree once; distant clumps of mass
-    ///     are summarized by their center-of-mass when `s/d < θ`.
-    ///
-    /// Both paths read/write the same acc_x / acc_y buffers the
-    /// integrator consumes.
+    /// Picks direct O(A squared) or Barnes-Hut O(N log N) by active count.
     fn gravitate_all(&mut self) {
         let n = self.n;
 
-        // Build active list once: cells with nonzero mass. Pre-collapse a
-        // 250×250 sim has ~60k active cells; post-collapse often <200.
-        // Either way, iterating the active list instead of the full N²
-        // skips all the empty space.
+        // Iterate active cells (nonzero mass) instead of full N squared.
         let mut active: Vec<usize> = Vec::with_capacity(n);
         for i in 0..n {
             if self.mass[i] != 0 {
@@ -493,10 +397,7 @@ impl Galaxy {
             self.acc_y[i] = 0.0;
         }
 
-        // Heuristic: O(A²) is cheaper than Barnes-Hut until A is big
-        // enough that log-tree traversal pays for building the tree.
-        // ~1000 is roughly where the crossover happens in WASM (all-pairs
-        // inner loop is ~2ns/pair, BH node visit is ~20ns).
+        // Crossover ~1000 active cells in WASM (measured).
         const BH_THRESHOLD: usize = 1000;
 
         if active.len() < BH_THRESHOLD {
@@ -513,8 +414,7 @@ impl Galaxy {
         let ys_i = self.ys_i.as_slice();
         let inv_r3_tbl = self.inv_r3.as_slice();
 
-        // Prebuild f32 masses for the active set so the inner loop stays
-        // cast-free.
+        // Prebuild f32 masses so the inner loop stays cast-free.
         let mut mass_f: Vec<f32> = Vec::with_capacity(active.len());
         for &j in active {
             mass_f.push(self.mass[j] as f32);
@@ -572,26 +472,12 @@ impl Galaxy {
         }
     }
 
-    /// Semi-implicit Euler integration. For each mass-carrying grid cell:
-    ///   v += a · dt          (velocity carries across ticks — this is
-    ///                         what makes the galaxy actually *move* over
-    ///                         time instead of twitching once and freezing)
-    ///   Δ = clamp(v · dt, ±MAX_SUBGRID_STEP)
-    ///   frac += Δ            (accumulate sub-grid motion)
-    ///   when |frac| ≥ 1 we transfer to the neighboring grid cell, keep
-    ///   remainder in frac, and bring velocity with us.
-    ///
-    /// Mass merging: when two cells land on the same grid index we sum
-    /// their masses and take the momentum-weighted average velocity of
-    /// their components (p = Σmᵢvᵢ ⇒ v = p / Σmᵢ) so collisions conserve
-    /// momentum.
+    /// Semi-implicit Euler integration; merges collisions by momentum.
     fn apply_acceleration(&mut self, time: f32) {
         let size = self.size as i32;
         let max_step = Galaxy::MAX_SUBGRID_STEP;
 
-        // Zero the mass scratch; we'll also accumulate momentum here into
-        // parallel scratch vectors kept locally (small & stack-allocated
-        // per-tick is fine).
+        // Zero scratch; momentum accumulators are local per-tick.
         for m in self.scratch_mass.iter_mut() {
             *m = 0;
         }
@@ -603,8 +489,7 @@ impl Galaxy {
         for i in 0..self.n {
             let m = self.mass[i];
             if m == 0 {
-                // Clear velocity for empty cells so stale values don't
-                // propagate when this slot gets re-occupied later.
+                // Empty cells: clear so stale values don't propagate later.
                 self.vel_x[i] = 0.0;
                 self.vel_y[i] = 0.0;
                 self.frac_x[i] = 0.0;
@@ -616,9 +501,7 @@ impl Galaxy {
             let mut vx = self.vel_x[i] + self.acc_x[i] * time;
             let mut vy = self.vel_y[i] + self.acc_y[i] * time;
 
-            // Damping so energy doesn't run away (no dissipation in an
-            // ideal N-body; but a grid-quantized sim integrates poorly
-            // at large dt and the system overheats without this).
+            // Damping: grid-quantized sim overheats at large dt without it.
             vx *= 0.995;
             vy *= 0.995;
 
@@ -683,9 +566,7 @@ impl Galaxy {
 
 }
 
-/// Clamp with wrap-around so a cell that accelerates past the edge
-/// reappears on the other side (matches the pre-rewrite behaviour that
-/// the old `clamp()` actually produced via `value.abs() % max`).
+/// Wrap-around: cells past the edge reappear on the other side.
 #[inline]
 fn wrap(value: i32, size: i32) -> i32 {
     let m = value % size;
@@ -696,33 +577,22 @@ fn wrap(value: i32, size: i32) -> i32 {
     }
 }
 
-// ---------------------------------------------------------------------------
-// Barnes-Hut quadtree (flat-arena)
-// ---------------------------------------------------------------------------
+// Barnes-Hut quadtree (flat-arena).
 
 const NO_CHILD: u32 = u32::MAX;
 
 #[derive(Clone)]
 struct Node {
-    // Node's bounding box — centered quadrants split at (cx, cy) with
-    // half-side `h`. Root covers (0,0)-(size,size) so cx=h, cy=h.
+    // Bounding box: centered at (cx, cy), half-side h. Root has cx=cy=h.
     cx: f32,
     cy: f32,
     h: f32,
-
-    // Aggregate mass and center-of-mass. For internal nodes these are
-    // running sums of descendants; for leaves they represent the one
-    // body the leaf contains.
     mass: f32,
     com_x: f32,
     com_y: f32,
-
-    // Leaf state: index of contained body, or NO_CHILD if empty. An
-    // internal node has `body == NO_CHILD` and non-NO_CHILD child
-    // indices.
+    // Leaf: body index. Internal: NO_CHILD.
     body: u32,
-
-    // Children (NE=0, NW=1, SW=2, SE=3). NO_CHILD means "empty quadrant".
+    // Quadrants: NE=0, NW=1, SW=2, SE=3.
     children: [u32; 4],
 }
 
@@ -765,9 +635,7 @@ fn build_quadtree(px: &[f32], py: &[f32], pm: &[f32], ox: f32, oy: f32, size: f3
     Tree { nodes }
 }
 
-/// Insert body `b` into the subtree rooted at `node_idx`. Grows the arena
-/// via `nodes.push(...)` — uses indices to avoid borrow-checker fights on
-/// recursive `&mut Vec<Node>`.
+/// Insert body `b` into the subtree at `node_idx`. Indices avoid borrow fights.
 fn insert(nodes: &mut Vec<Node>, node_idx: usize, b: u32, bx: f32, by: f32, bm: f32) {
     let (h, existing_body, is_leaf) = {
         let node = &nodes[node_idx];
@@ -802,9 +670,7 @@ fn insert(nodes: &mut Vec<Node>, node_idx: usize, b: u32, bx: f32, by: f32, bm: 
             n.com_y = 0.0;
         }
 
-        // If both bodies hash to the same quadrant at a very deep level
-        // (e.g. two cells on the exact same grid point), just merge into
-        // a single leaf — further subdivision won't separate them.
+        // Coincident bodies at deep levels: merge instead of subdividing.
         if h < 1e-6 {
             let n = &mut nodes[node_idx];
             n.mass = old_m + bm;
@@ -877,15 +743,11 @@ fn subdivide_and_insert(
 }
 
 impl Tree {
-    /// Compute force on a body at (bx, by) from every mass in the tree
-    /// using the θ criterion: if `s/d < θ` for a node (s = node size,
-    /// d = distance to node CoM), treat the whole subtree as one point
-    /// mass at its center of mass.
+    /// Force on (bx, by). Theta criterion: s/d < theta accepts subtree CoM.
     fn force(&self, bx: f32, by: f32, theta_sq: f32, soft: f32, g: f32) -> (f32, f32) {
         let mut ax = 0.0f32;
         let mut ay = 0.0f32;
-        // Iterative DFS via an explicit stack to avoid recursion depth
-        // on large/deep trees. Flat arena lets us walk by index.
+        // Iterative DFS to bound recursion on deep trees.
         let mut stack: Vec<u32> = Vec::with_capacity(64);
         stack.push(0);
 
@@ -927,10 +789,6 @@ impl Tree {
     }
 }
 
-// ---------------------------------------------------------------------------
-// Tests
-// ---------------------------------------------------------------------------
-
 #[cfg(test)]
 mod tests_intial_generation {
     use super::*;
@@ -962,9 +820,7 @@ mod tests_intial_generation {
     }
     #[test]
     fn test_seed_with_same_u64_is_reproducible() {
-        // Two galaxies seeded with the same (additional, seed) pair must
-        // produce identical cell state. This is the invariant the
-        // `?seed=…` URL feature relies on.
+        // Invariant for `?seed=...` URL sharing.
         let a = Galaxy::new(10, 0).seed_with(100, 42);
         let b = Galaxy::new(10, 0).seed_with(100, 42);
         assert_eq!(a.mass, b.mass);
@@ -1107,9 +963,7 @@ mod tests_intial_generation {
         let g = Galaxy::new(40, 0).seed_with_mode(800, InitialCondition::Collision);
         let size = g.size as f32;
         let cx = size * 0.5;
-        // Sum mass + mass-weighted centroid in each half; both should be
-        // populated and the centroids should be on opposite sides of the
-        // grid center, separated by roughly the seed offset (size * 0.5).
+        // Expect populated centroids on opposite sides, separated by ~size/2.
         let mut left_mass: u64 = 0;
         let mut right_mass: u64 = 0;
         let mut left_cx: f64 = 0.0;
@@ -1216,11 +1070,7 @@ mod tests_intial_generation {
 
     #[test]
     fn test_tick_with_accel_positive_x_force_moves_mass_right() {
-        // Sanity check the external-force path actually integrates forces
-        // in the right direction. Start with a single mass in the middle
-        // of an otherwise empty grid, then apply uniform +x-only ticks.
-        // The mass centroid must end up at a larger x column than it
-        // started. Uniform fill would be ambiguous under toroidal wrap.
+        // Single mass + uniform +x force: centroid must end up at larger x.
         let mut g = Galaxy::new(12, 0);
         let start_col: i32 = 2;
         let start_row: i32 = 6;

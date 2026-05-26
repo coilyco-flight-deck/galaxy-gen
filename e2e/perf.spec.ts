@@ -8,15 +8,7 @@ async function waitForWasm(page: Page) {
   );
 }
 
-/**
- * Browser-side perf probe. Not a pass/fail gate — just logs numbers so we
- * can see how the Rust→WASM pipeline performs in a real chromium at
- * several galaxy sizes. Run with `npx playwright test e2e/perf.spec.ts`.
- *
- * Covers both the tick cost (Rust/WASM) and the tick+render cost
- * (including the canvas path). Diverging numbers point at render being
- * the bottleneck, not physics.
- */
+// Browser-side perf probe. Logs only; no pass/fail.
 test.describe("perf bench", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto("/");
@@ -54,9 +46,7 @@ test.describe("perf bench", () => {
       // `run` loop actually does per frame.
       const render = await page.evaluate((iters) => {
         const fe: any = (window as any).__galaxyGen.frontend;
-        // Pull the exported updater off the module. We read it via the
-        // live `dataviz` module that `application.tsx` imports — expose
-        // it via a well-known symbol for measurement.
+        // Pull live dataviz module via the well-known symbol.
         const dataviz: any = (window as any).__galaxyGen.dataviz;
         const samples: number[] = [];
         for (let i = 0; i < iters; i++) {

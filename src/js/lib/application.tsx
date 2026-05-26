@@ -13,14 +13,9 @@ const DT_MAX = 10;
 const DEFAULT_GALAXY_SIZE = 50;
 const DEFAULT_SEED_MASS = 25;
 
-// A u64 max is 2^64 - 1. We draw fresh randomize-button seeds uniformly
-// over the full u64 range so they look properly opaque.
 const U64_MAX = (1n << 64n) - 1n;
 
-/**
- * Generate a fresh random u64 seed as a bigint. Uses `crypto.getRandomValues`
- * so the seeds aren't correlated with `Math.random()`'s shared state.
- */
+/** Fresh random u64 seed via `crypto.getRandomValues`. */
 function randomU64Seed(): bigint {
   if (typeof globalThis.crypto !== "undefined") {
     const buf = new Uint32Array(2);
@@ -76,11 +71,7 @@ function readInitialParams(): InitialParams {
   };
 }
 
-/**
- * Push the current init parameters into the URL via `history.replaceState`
- * so the page is shareable. We use `replaceState` (not `pushState`) so
- * re-initializing doesn't pile up history entries.
- */
+/** Push init params to URL via replaceState (avoids history pileup). */
 function writeUrlParams(p: {
   galaxySize: number;
   seedMass: number;
@@ -103,9 +94,7 @@ export function Interface() {
   const [galaxySize, setGalaxySize] = React.useState(initial.galaxySize);
   const [galaxySeedMass, setGalaxySeedMass] = React.useState(initial.seedMass);
   const [timeModifier, setTimeModifier] = React.useState(initial.timeModifier);
-  // Seed is stored as a string so the input control is forgiving. The
-  // parse happens at Init / Seed time. Empty string = "use a fresh
-  // random seed next time we seed".
+  // Seed stays a string; parse at Init/Seed time. Empty means fresh random.
   const [seed, setSeed] = React.useState<string>(initial.seed);
   const [initialCondition, setInitialCondition] = React.useState<galaxy.InitialCondition>(
     galaxy.InitialCondition.Uniform
@@ -128,9 +117,7 @@ export function Interface() {
     timeModRef.current = timeModifier;
   }, [timeModifier]);
 
-  // Worker-driven tick loop. The worker owns its own Galaxy WASM
-  // instance and posts back mass snapshots; the main thread uses them
-  // to drive the renderer and update the visible Frontend cache.
+  // Worker owns its Galaxy and posts mass snapshots back for the renderer.
   const workerRef = React.useRef<galaxy.TickWorker | null>(null);
   const latestSnapshotRef = React.useRef<{
     mass: Uint16Array;
@@ -147,8 +134,7 @@ export function Interface() {
         (window as any).__galaxyGen = (window as any).__galaxyGen || {};
         (window as any).__galaxyGen.wasmReady = true;
         (window as any).__galaxyGen.dataviz = dataviz;
-        // Parity tests need the raw wasm module + Frontend constructor
-        // so they can spin up an independent galaxy on a different backend.
+        // Parity tests use these to spin up a galaxy on another backend.
         (window as any).__galaxyGen.wasm = module;
         (window as any).__galaxyGen.Frontend = galaxy.Frontend;
       }
@@ -179,9 +165,7 @@ export function Interface() {
     };
   };
 
-  // Stops the run loop. If a worker is driving it, waits for the worker
-  // to return final state and rehydrates the main-thread Frontend so
-  // subsequent step/seed operations pick up exactly where it left off.
+  // Stops the run loop, awaiting worker state to rehydrate the Frontend.
   const stopLoop = React.useCallback(async () => {
     if (!runningRef.current) return;
     runningRef.current = false;
@@ -212,8 +196,7 @@ export function Interface() {
       console.error("wasm not yet loaded");
       return;
     }
-    // Tear down any in-flight worker synchronously — init should be
-    // immediate and we don't need the worker's final state.
+    // Init is immediate; tear down worker without awaiting final state.
     runningRef.current = false;
     setRunning(false);
     if (rafRef.current != null) {
@@ -234,9 +217,7 @@ export function Interface() {
     }
     const parsed = parseSeed(effectiveSeed);
     const next = new galaxy.Frontend(galaxySize);
-    // Reproducible path only covers Uniform (seed_with_mode doesn't take
-    // a u64 seed). Non-uniform modes fall back to rand::rng() and respect
-    // the selected InitialCondition.
+    // Reproducible path covers Uniform only; other modes use rand::rng().
     if (parsed != null && initialCondition === galaxy.InitialCondition.Uniform) {
       next.seedWith(galaxySeedMass, parsed);
     } else {
@@ -262,8 +243,7 @@ export function Interface() {
       return;
     }
     const t0 = performance.now();
-    // Route through tickAsync so the single-step button exercises the
-    // selected backend (WebGPU force calc lands via tick_with_accel).
+    // Single-step routes via tickAsync so WebGPU path is exercised.
     await galaxyFrontendRef.current.tickAsync(timeModifier);
     const elapsed = performance.now() - t0;
     setTickMs(elapsed);
@@ -276,10 +256,7 @@ export function Interface() {
     dataviz.resetView();
   };
 
-  // Render loop — driven by requestAnimationFrame on the main thread,
-  // but *physics is in the worker*. This loop just paints whatever the
-  // latest worker snapshot is. If no new snapshot arrived since last
-  // frame we skip redrawing — cheap and avoids flicker.
+  // RAF render loop; physics is in the worker. Skip redraw if no new snapshot.
   const renderLoop = React.useCallback(() => {
     if (!runningRef.current || !galaxyFrontendRef.current) return;
     const snap = latestSnapshotRef.current;

@@ -1,31 +1,6 @@
-/**
- * Web Worker entry for the physics tick loop.
- *
- * Owns an independent `Galaxy` WASM instance and runs `tick` in a loop
- * off the main thread so the browser stays responsive during large sims.
- *
- * Message protocol (main → worker):
- *   { type: "init", size, mass, velX, velY, fracX, fracY }
- *       Hydrate a new Galaxy from state transferred from the main thread.
- *   { type: "start", timeModifier }
- *       Begin looping: tick → postMessage(snapshot) → schedule next.
- *   { type: "setTimeModifier", timeModifier }
- *       Live-update dt without stopping.
- *   { type: "stop" }
- *       Halt the loop; worker sends back final full state for rehydration.
- *
- * Message protocol (worker → main):
- *   { type: "snapshot", mass, tickMs, tickId }
- *       Per-tick mass snapshot (Uint16Array, transferred).
- *   { type: "stopped", mass, velX, velY, fracX, fracY }
- *       Final state after a stop, so main thread can rehydrate its
- *       own Galaxy without losing velocity / sub-grid position.
- */
+// Physics tick loop worker. See docs/tick-worker.md for the message protocol.
 
-// The WASM import is async (webpack's `asyncWebAssembly: true`). We
-// register the message handler synchronously and buffer any inbound
-// messages until the module resolves, so the main thread never has to
-// wait for worker readiness.
+// WASM import is async; buffer inbound messages until the module resolves.
 type WasmModule = typeof import("galaxy_gen_backend/galaxy_gen_backend");
 let wasmMod: WasmModule | null = null;
 const pending: InMsg[] = [];
@@ -67,9 +42,7 @@ let scheduled = false;
 function scheduleLoop() {
   if (scheduled) return;
   scheduled = true;
-  // setTimeout 0 yields between ticks so the worker can process
-  // incoming messages (stop / setTimeModifier) and avoid starving
-  // the message loop on a heavy tick.
+  // Yield between ticks so stop / setTimeModifier aren't starved.
   setTimeout(runOneTick, 0);
 }
 
@@ -83,9 +56,7 @@ function runOneTick() {
   galaxy = next;
   const tickMs = performance.now() - t0;
 
-  // Copy mass into a fresh buffer we can transfer. `galaxy.mass()`
-  // already allocates a Uint16Array backed by its own memory on the
-  // JS heap, so it's safe to transfer without corrupting WASM memory.
+  // `galaxy.mass()` allocates a JS-heap Uint16Array; safe to transfer.
   const mass: Uint16Array = galaxy.mass();
   tickId += 1;
   const payload = {

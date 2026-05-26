@@ -6,18 +6,12 @@ async function waitForWasm(page: Page) {
   });
 }
 
-// webpack-dev-server HMR produces harmless console noise when a page does
-// more than one `goto` in the same test (the old page's WebSocket tears down
-// mid-reload). These aren't application errors — filter them out so tests
-// that re-navigate (URL-param reproducibility checks) don't flake.
+// Filter webpack-dev-server HMR noise that fires on re-navigation.
 function isDevServerNoise(msg: string): boolean {
   return (
     msg.includes("webpack-dev-server") ||
     msg.includes("ws://127.0.0.1:8080/ws") ||
     msg.includes("ws://localhost:8080/ws") ||
-    // Generic "Failed to load resource … 404" — typically a stale HMR
-    // chunk fetch or favicon probe when a test re-navigates. These are
-    // harmless for application behaviour.
     /Failed to load resource.*\b404\b/.test(msg)
   );
 }
@@ -114,15 +108,13 @@ test.describe("Galaxy Generator", () => {
   });
 
   test("webgpu backend ticks produce non-frozen simulation when available", async ({ page }) => {
-    // Skip when the Chromium launch didn't expose navigator.gpu (older
-    // versions, missing swiftshader, etc). CPU path is covered above.
+    // Skip if Chromium didn't expose navigator.gpu (CPU path is covered above).
     const hasGpu = await page.evaluate(() => Boolean((navigator as any).gpu));
     test.skip(!hasGpu, "navigator.gpu not available in this Chromium");
 
     await page.getByTestId("btn-init").click();
 
-    // Enable WebGPU directly on the exposed Frontend (the UI selector was
-    // removed; parity/smoke coverage still exercises the WGSL path).
+    // Enable WebGPU directly; UI selector was removed.
     await page.evaluate(async () => {
       const fe: any = (window as any).__galaxyGen.frontend;
       await fe.enableWebGPU();
@@ -155,10 +147,7 @@ test.describe("Galaxy Generator", () => {
   });
 
   test("webgpu and cpu produce matching mass totals for small N", async ({ page }) => {
-    // Parity check: for identical deterministic initial state, running
-    // CPU tick() and WebGPU tickAsync() side-by-side for the same number
-    // of steps gives matching mass arrays. Small N so both paths run
-    // direct-sum O(N^2) and not Barnes-Hut.
+    // CPU vs WebGPU parity, small N so both run direct-sum.
     const hasGpu = await page.evaluate(() => Boolean((navigator as any).gpu));
     test.skip(!hasGpu, "navigator.gpu not available in this Chromium");
 
@@ -173,10 +162,7 @@ test.describe("Galaxy Generator", () => {
       const timeMod = 0.1;
       const ticks = 10;
 
-      // Two Frontends with identical deterministic initial mass field
-      // (cell_initial_mass=2, no random seed). Frontend's constructor
-      // default is cell_initial_mass=0, so bypass and assign pre-built
-      // wasm.Galaxy instances directly.
+      // Bypass Frontend ctor (defaults to mass=0) to set cell_initial_mass=2.
       const cpuFe: any = new Frontend(size);
       const gpuFe: any = new Frontend(size);
       cpuFe.galaxy.free();
@@ -207,15 +193,12 @@ test.describe("Galaxy Generator", () => {
 
     expect(r.cpuMass.length).toBe(r.gpuMass.length);
 
-    // Mass conservation: totals must match across backends exactly (both
-    // paths run the same Rust integrator + collision merge).
+    // Mass conservation: totals must match across backends exactly.
     const cpuTotal = r.cpuMass.reduce((a, b) => a + b, 0);
     const gpuTotal = r.gpuMass.reduce((a, b) => a + b, 0);
     expect(gpuTotal).toBe(cpuTotal);
 
-    // Per-cell agreement: Rust int-r^2 lookup vs WGSL float inverseSqrt
-    // aren't bit-identical. If GPU fell back to CPU we get exact match;
-    // otherwise allow ~10% of cells to differ by rounding.
+    // Rust int-r^2 vs WGSL float inverseSqrt: allow ~10% per-cell drift.
     let diffs = 0;
     for (let i = 0; i < r.cpuMass.length; i++) {
       if (r.cpuMass[i] !== r.gpuMass[i]) diffs++;
@@ -331,9 +314,7 @@ test.describe("Galaxy Generator", () => {
 
     await sizeInput.click();
 
-    // Neither arrow keys nor 'r' nor Space should trigger shortcuts while the
-    // cursor is inside an input — otherwise typing "0.5" into dt would
-    // inadvertently pause the sim on the space bar, etc.
+    // Shortcuts must not fire while typing in an input.
     await sizeInput.press("ArrowUp");
     await sizeInput.press("ArrowDown");
     await sizeInput.press("r");
@@ -377,9 +358,7 @@ test.describe("Galaxy Generator", () => {
     const before = await getCam();
     expect(before).toEqual({ tx: 0, ty: 0, zoom: 1 });
 
-    // Dispatch wheel events directly on the canvas so the camera zooms
-    // in regardless of pointer focus. Multiple small deltas mirror a
-    // trackpad pinch-zoom gesture.
+    // Multiple small wheel deltas mirror a trackpad pinch-zoom.
     await page.evaluate(() => {
       const c = document.querySelector("#dataviz canvas") as HTMLCanvasElement;
       const rect = c.getBoundingClientRect();
@@ -444,9 +423,7 @@ test.describe("Galaxy Generator", () => {
     }));
     expect(Number(afterZoom.zoom)).toBeGreaterThan(1.1);
 
-    // Drag the canvas from its center toward the top-left corner by
-    // dispatching pointer events directly (matches the handlers and avoids
-    // any ambiguity about mouse→pointer event synthesis under automation).
+    // Dispatch pointer events directly; avoids mouse-to-pointer ambiguity.
     await page.evaluate(() => {
       const c = document.querySelector("#dataviz canvas") as HTMLCanvasElement;
       const rect = c.getBoundingClientRect();
@@ -540,13 +517,7 @@ test.describe("Galaxy Generator", () => {
     );
     expect(optionValues).toEqual(["0", "1", "2", "3"]);
 
-    // Walk each non-uniform mode. Bang (2) zeroes the baseline grid and
-    // only fills a central disc, so <50% of cells should have mass.
-    // Collision (3) is the same story. Rotation (1) fills the grid but
-    // also sets per-cell velocities, so a few ticks should visibly move
-    // mass around. Assert that each mode produces a DIFFERENT mass field
-    // than Uniform. Init now seeds in the same click, so each mode change
-    // needs a fresh re-init to take effect.
+    // Each non-uniform mode must produce a different mass field than Uniform.
     const snapshots: Record<string, number[]> = {};
     for (const mode of ["0", "1", "2", "3"]) {
       await select.selectOption(mode);
@@ -560,11 +531,7 @@ test.describe("Galaxy Generator", () => {
       expect(snapshots[mode].length).toBe(50 * 50);
     }
 
-    // Each non-uniform mode should produce a mass field that differs
-    // meaningfully from uniform's. Ordering by nonzero-cell count is
-    // too strict: uniform collapses into dense clusters under gravity
-    // while bang's outward-radial velocity spreads mass into a growing
-    // ring, so bang can end up with more nonzero cells than uniform.
+    // Compare by diff count; nonzero-cell ordering is too strict.
     const nonzero = (a: number[]) => a.filter((m) => m > 0).length;
     const diffCount = (a: number[], b: number[]) => {
       let n = 0;
@@ -587,9 +554,7 @@ test.describe("Galaxy Generator", () => {
   test("run button ticks via the worker and pause resumes state cleanly", async ({ page }) => {
     await page.getByTestId("btn-init").click();
 
-    // Before running, the worker shouldn't exist yet but the browser
-    // should support Workers (sanity — otherwise the run path is a
-    // no-op and the rest of this test is meaningless).
+    // Worker API must exist; otherwise run path is a no-op.
     const workerSupport = await page.evaluate(
       () => (window as any).__galaxyGen?.workerSupported === true
     );
@@ -630,12 +595,7 @@ test.describe("Galaxy Generator", () => {
     }
     expect(changed / before.length).toBeGreaterThan(0.05);
 
-    // And the step button should still work after pause (proving the
-    // main-thread Frontend is alive and its state was restored). We
-    // assert that the tick counter advances — the mass field may or
-    // may not change on any given tick once the sim has settled, but
-    // the act of calling tick() on a restored Frontend should never
-    // throw and should always bump the counter.
+    // Step button must still bump the counter after pause/restore.
     const tickCountBefore = parseInt(
       (
         await page.locator("text=/ticks: \\d+/").first().textContent()

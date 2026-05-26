@@ -1,8 +1,6 @@
 import * as galaxy from "./galaxy";
 
-// Canvas, not SVG. 2,500+ circles with per-tick `setAttribute` on r/fill
-// hit hundreds of ms of DOM work per frame. A single <canvas> strokes
-// every cell in a tight loop in <5ms at N=10k.
+// Canvas, not SVG: 2500+ DOM attrs/frame hits hundreds of ms.
 
 const CANVAS = 800;
 const MARGIN = 20;
@@ -29,9 +27,7 @@ interface State {
   cleanup: () => void;
 }
 
-// Reflect camera onto #dataviz as data-* attributes so E2E tests (and
-// anything outside the JS module boundary) can observe pan/zoom without
-// pulling in the module. Rounded to keep DOM churn low but still observable.
+// Mirror camera to data-* attrs so E2E tests can observe pan/zoom.
 function publishCamera(s: State) {
   const { host, camera } = s;
   host.setAttribute("data-cam-tx", camera.tx.toFixed(2));
@@ -49,11 +45,8 @@ function clampZoom(z: number): number {
   return Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, z));
 }
 
-// Clamp pan so you can't drag the view completely off-screen.
+// Clamp pan so the world rectangle always intersects the viewport.
 function clampPan(cam: Camera): Camera {
-  // Screen origin can never go further right/down than 0, or further
-  // left/up than CANVAS*(1-zoom). This keeps the world rectangle always
-  // intersecting the viewport.
   const min = CANVAS * (1 - cam.zoom);
   const tx = Math.max(min, Math.min(0, cam.tx));
   const ty = Math.max(min, Math.min(0, cam.ty));
@@ -240,9 +233,7 @@ function drawFrame(s: State, mass: Uint16Array) {
   ctx.translate(camera.tx, camera.ty);
   ctx.scale(camera.zoom, camera.zoom);
 
-  // Draw circles at a fixed world radius; since we scaled the context,
-  // strokes/fills will also be scaled — which is exactly what we want for
-  // a proper zoom (cells grow as you zoom in).
+  // Fixed world radius; scaled by context so cells grow on zoom.
   const buckets = 6;
   const bucketColors: string[] = [];
   for (let b = 0; b < buckets; b++) {

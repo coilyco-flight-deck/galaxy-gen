@@ -1,9 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 import { createHash } from "crypto";
 
-// Derive a per-worktree port so parallel agents on different worktrees don't
-// collide on the dev server. Same cwd → same port, so `reuseExistingServer`
-// still works across reruns in one worktree.
+// Per-worktree port so parallel agents don't collide on the dev server.
 const portFromCwd = (): number => {
   const hash = createHash("sha256").update(process.cwd()).digest();
   return 20000 + (hash.readUInt16BE(0) % 30000);
@@ -32,9 +30,7 @@ export default defineConfig({
       name: "chromium",
       use: {
         ...devices["Desktop Chrome"],
-        // Enable WebGPU in headless Chromium so the WebGPU backend
-        // (feature-detect + compute shader) can be smoke-tested end-
-        // to-end. Harmless when the tests don't touch the GPU path.
+        // Enable WebGPU in headless Chromium for compute-shader smoke tests.
         launchOptions: {
           args: [
             "--enable-unsafe-webgpu",

@@ -1,21 +1,4 @@
-/**
- * WebGPU compute-shader backend for N-body force calculation.
- *
- * Scope (MVP, matches README idea #9):
- *   - O(N²) direct-sum WGSL compute kernel.
- *   - Reads `positions` + `masses` storage buffers, writes `acc`.
- *   - JS ships accelerations back to the WASM `tick_with_accel` path,
- *     which runs the CPU integrator + collision step.
- *
- * This is *not* meant to beat the Barnes-Hut CPU path on big grids — the
- * all-pairs kernel is O(N²) and the readback round-trip dominates for
- * small N. The goal is to exercise the GPU code path end-to-end and give
- * us something to iterate on (bigger N, more complex kernels) later.
- *
- * Feature detection + graceful fallback live in `isWebGPUAvailable()`
- * and `WebGPUForceBackend.create()` — both return a clean result that
- * the Frontend can use to decide CPU vs GPU at runtime.
- */
+/** WebGPU O(N^2) N-body force kernel. Hands acc to `tick_with_accel`. */
 
 export const WGSL_NBODY_FORCE = /* wgsl */ `
 // Per-body input: packed as (x, y, mass, _pad) for 16-byte alignment.
@@ -45,8 +28,7 @@ fn main(@builtin(global_invocation_id) gid : vec3<u32>) {
   var ax: f32 = 0.0;
   var ay: f32 = 0.0;
 
-  // Skip zero-mass cells — they have no inertia in the integrator
-  // anyway, and leaving them at zero acc matches the CPU path.
+  // Zero-mass cells leave acc at zero (matches CPU path).
   if (me.mass == 0.0) {
     acc[i] = vec2<f32>(0.0, 0.0);
     return;
@@ -86,13 +68,7 @@ export interface WebGPUInitResult {
   backend?: WebGPUForceBackend;
 }
 
-/**
- * Lazily initialized per-Frontend instance. Owns the GPUDevice,
- * pipeline, and the resizable storage buffers.
- *
- * The kernel runs per-tick: update bodies buffer → dispatch →
- * mapAsync the readback → copy into the `accel` Float32Array pair.
- */
+/** Per-Frontend GPU device + pipeline + resizable storage buffers. */
 export class WebGPUForceBackend {
   private device: GPUDevice;
   private pipeline: GPUComputePipeline;
@@ -120,11 +96,7 @@ export class WebGPUForceBackend {
     });
   }
 
-  /**
-   * Try to spin up a WebGPU backend. Returns `{ ok: false }` if the
-   * browser lacks WebGPU, if adapter/device request fails, or if
-   * pipeline creation errors out — callers should fall back to CPU.
-   */
+  /** Spin up a WebGPU backend. `{ ok: false }` signals fall-back-to-CPU. */
   static async create(): Promise<WebGPUInitResult> {
     if (!isWebGPUAvailable()) {
       return { ok: false, reason: "navigator.gpu unavailable" };
@@ -196,13 +168,7 @@ export class WebGPUForceBackend {
     this.accY = new Float32Array(n);
   }
 
-  /**
-   * Compute accelerations for every cell. Returns { acc_x, acc_y } as
-   * parallel Float32Arrays matching the Rust `Galaxy` SoA layout.
-   *
-   * `mass` — Uint16Array of length n (n = size*size).
-   * `size` — grid side length; positions are derived (col, row).
-   */
+  /** Compute per-cell acc. Returns parallel acc_x/acc_y per SoA layout. */
   async computeAccelerations(
     mass: Uint16Array,
     size: number
