@@ -27,6 +27,13 @@ categories:
     prefix: tooling-
     enforce_status: false
 
+  # Pointer skill for this repo. Source of truth lives here; agentic-os-kai
+  # references this from its own categories.yaml.
+  - id: galaxy-gen
+    kind: exact
+    exact: galaxy-gen
+    enforce_status: false
+
 # ---- Global checks ----
 
 # Strings that must not appear in any SKILL.md body. Populate when a
