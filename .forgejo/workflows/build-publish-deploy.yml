@@ -29,20 +29,57 @@ jobs:
     needs: test
     steps:
       - uses: actions/checkout@v4
-      # Build the image and push it to the in-cluster registry. The runner's
-      # DinD sidecar is the docker host (DOCKER_HOST=tcp://localhost:2375) and
-      # carries --insecure-registry=192.168.0.194:30500, so the plain-http
-      # push to the NodePort registry round-trips. No tailnet join, no GHCR,
-      # no docker-save sideload. See coilysiren/infrastructure#168, #171.
+      # The `docker` runner label resolves to node:20-bookworm, which ships
+      # git + curl but no docker CLI or kubectl. Pull them in as static
+      # binaries (apt-free, so no daemon postinst runs in the job container):
+      # docker talks to the DinD sidecar over DOCKER_HOST, kubectl rolls the
+      # deployment. Same shape as coilysiren/backend's deploy job.
+      - name: Install deploy tooling
+        run: |
+          set -euo pipefail
+          docker_cli_ver=$(curl -fsSL https://download.docker.com/linux/static/stable/x86_64/ \
+            | grep -oE 'docker-[0-9]+\.[0-9]+\.[0-9]+\.tgz' | sort -V | tail -1 \
+            | sed -E 's/^docker-(.*)\.tgz$/\1/')
+          curl -fsSL "https://download.docker.com/linux/static/stable/x86_64/docker-${docker_cli_ver}.tgz" \
+            | tar -xz -C /tmp
+          install /tmp/docker/docker /usr/local/bin/docker
+          curl -fsSL -o /usr/local/bin/kubectl \
+            "https://dl.k8s.io/release/$(curl -fsSL https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+          chmod +x /usr/local/bin/kubectl
+      # The DinD sidecar shares the runner pod's netns and listens on :2375
+      # there, but the job container sits on a separate per-workflow docker
+      # bridge - so the inherited DOCKER_HOST=tcp://localhost:2375 points at
+      # the job container's own loopback, not dockerd. dockerd is reachable at
+      # the job container's default-route gateway (the pod netns). Probe
+      # candidates and pin the first that answers. See coilysiren/backend#26.
+      - name: Resolve docker host
+        run: |
+          set -euo pipefail
+          gw=$(node -e "const fs=require('fs');const l=(fs.readFileSync('/proc/net/route','utf8').split('\n').find(x=>x.split('\t')[1]==='00000000'))||'';const h=l.split(/\s+/)[2]||'';if(h){console.log(h.match(/../g).reverse().map(x=>parseInt(x,16)).join('.'))}" || true)
+          for h in "tcp://${gw}:2375" "${DOCKER_HOST:-}" tcp://localhost:2375 unix:///var/run/docker.sock; do
+            [ -z "$h" ] && continue
+            [ "$h" = "tcp://:2375" ] && continue
+            if docker -H "$h" info >/dev/null 2>&1; then
+              echo "docker daemon reachable at $h"
+              echo "DOCKER_HOST=$h" >> "$GITHUB_ENV"
+              exit 0
+            fi
+            echo "no docker daemon at $h"
+          done
+          echo "no reachable docker daemon" >&2
+          exit 1
+      # Build the image and push it to the in-cluster registry. The DinD
+      # sidecar carries --insecure-registry=192.168.0.194:30500, so the
+      # plain-http push to the NodePort registry round-trips. No tailnet join,
+      # no GHCR, no docker-save sideload. See coilysiren/infrastructure#168, #171.
+      # Use the legacy builder: the static docker CLI ships no buildx plugin,
+      # so BuildKit (--progress, inline cache) is unavailable. A plain build
+      # against the daemon is enough for this single image.
       - name: Build and push
         run: |
           set -euo pipefail
           IMAGE=192.168.0.194:30500/coilysiren-galaxy-gen:${{ github.sha }}
-          docker build \
-            --progress plain \
-            --build-arg BUILDKIT_INLINE_CACHE=1 \
-            -t "$IMAGE" \
-            .
+          docker build -t "$IMAGE" .
           docker push "$IMAGE"
       # Roll the deployment over the LAN. The kubeconfig points at the k3s API
       # on the LAN IP (192.168.0.194:6443, in the cert SANs) and authenticates
