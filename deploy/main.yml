@@ -2,35 +2,65 @@ apiVersion: v1
 kind: Namespace
 metadata:
   name: ${NAME}
-
 ---
-# GHCR pull-secret, synced declaratively from AWS SSM via the cluster's
-# external-secrets operator. `/github/pat` is the shared PAT for ghcr.io/coilysiren
-# and lives in AWS SSM Parameter Store. ESO renders it into a
-# kubernetes.io/dockerconfigjson secret — no manual kubectl create, no PAT
-# materializing outside the cluster. Same pattern as eco-mcp-app.
-apiVersion: external-secrets.io/v1
-kind: ExternalSecret
+# Deployer ServiceAccount for the Forgejo Actions release pipeline. The CI
+# deploy job authenticates as this SA to roll the app Deployment over the
+# LAN (kubeconfig in the Forgejo Actions secret DEPLOY_KUBECONFIG on
+# coilysiren/galaxy-gen, built from this SA's token Secret below). No tailnet
+# join, no SSH. See coilysiren/galaxy-gen#17, coilysiren/backend#25.
+apiVersion: v1
+kind: ServiceAccount
 metadata:
-  name: docker-registry
+  name: deployer
   namespace: ${NAME}
-spec:
-  refreshInterval: 1h
-  secretStoreRef:
-    name: aws-parameter-store
-    kind: ClusterSecretStore
-  target:
-    name: docker-registry
-    creationPolicy: Owner
-    template:
-      type: kubernetes.io/dockerconfigjson
-      data:
-        .dockerconfigjson: |
-          {"auths":{"ghcr.io":{"auth":"{{ printf "coilysiren:%s" .pat | b64enc }}"}}}
-  data:
-    - secretKey: pat
-      remoteRef:
-        key: /github/pat
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: deployer
+  namespace: ${NAME}
+rules:
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    verbs: ["get", "patch"]
+  - apiGroups: ["apps"]
+    resources: ["deployments/status"]
+    verbs: ["get"]
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: deployer
+  namespace: ${NAME}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: deployer
+subjects:
+  - kind: ServiceAccount
+    name: deployer
+    namespace: ${NAME}
+---
+# Long-lived token for the deployer SA. Kubernetes populates token, ca.crt,
+# and namespace into this Secret; the DEPLOY_KUBECONFIG Forgejo secret is
+# built from its ca.crt + token. Regenerate the kubeconfig if rotated. The
+# token never lives in git. See coilysiren/galaxy-gen#17.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: deployer-token
+  namespace: ${NAME}
+  annotations:
+    kubernetes.io/service-account.name: deployer
+type: kubernetes.io/service-account-token
+---
+# No pull-secret. The image is built by Forgejo Actions and pushed to the
+# in-cluster registry (192.168.0.194:30500, plain http). The app pod is
+# pinned to kai-server, whose containerd has the insecure-registry entry in
+# registries.yaml, so the pull lands there. See coilysiren/infrastructure#171.
 
 ---
 # Tailnet device for this service. Auth key minted by
@@ -116,11 +146,13 @@ spec:
       # Linux 6.8); WSL2 nodes don't expose it.
       nodeSelector:
         kubernetes.io/hostname: kai-server
-      imagePullSecrets:
-        - name: docker-registry
       containers:
         - name: ${NAME}
           image: ${IMAGE}
+          # Pulled from the in-cluster registry (192.168.0.194:30500) by
+          # kai-server's containerd over plain http. Always, so each rolled
+          # ${git-hash} tag is fetched fresh. See coilysiren/infrastructure#171.
+          imagePullPolicy: Always
           resources:
             requests:
               cpu: "25m"
