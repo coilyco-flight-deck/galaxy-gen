@@ -56,11 +56,15 @@ Raw commands: `cargo test`, `cargo clippy -- -D warnings`, `cargo fmt`, `wasm-pa
 
 ## CI
 
-GitHub Actions (`.github/workflows/action.yml`) runs three jobs on push/PR to `main`:
+GitHub Actions (`.github/workflows/action.yml`) runs three jobs on PR to `main`:
 
 - `rust` - `cargo build` / `check` / `test` / `wasm-pack build`
 - `js` - `wasm-pack build` / `npm ci` / `npm run build`
 - `e2e` - `wasm-pack build` / `npm ci` / `playwright test` (uploads HTML report artifact on failure)
+
+## Deploy
+
+Push to `main` runs the in-cluster Forgejo pipeline (`.forgejo/workflows/build-publish-deploy.yml`): test (rust + wasm + e2e), then build the Docker image and push it to the in-cluster registry `192.168.0.194:30500/coilysiren-galaxy-gen:<sha>`, then `kubectl set image` + `rollout status` against the k3s API (`https://192.168.0.194:6443`). The deploy job authenticates as the `deployer` ServiceAccount (`deploy/main.yml`) via the `DEPLOY_KUBECONFIG` Forgejo Actions secret. No tailnet join, no GHCR. See coilysiren/galaxy-gen#17, coilysiren/backend#25, coilysiren/infrastructure#168, #171.
 
 ---
 

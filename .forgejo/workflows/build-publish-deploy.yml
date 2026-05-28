@@ -1,0 +1,86 @@
+name: build-publish-deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: docker
+    # Same base as the Dockerfile builder, so the toolchain (cargo + the
+    # pinned binaryen) is known-good. The default docker runner image has no
+    # rust, so pin the container explicitly.
+    container: rust:1.90-bookworm
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install node + binaryen + wasm-pack
+        # Binaryen is pulled from the upstream release tarball, NOT apt:
+        # Debian's binaryen produces wasm-opt output that trips
+        # `WebAssembly.Table.grow(): failed to grow table by 4` in chromium.
+        # Keep VER in sync with the Dockerfile.
+        run: |
+          set -euo pipefail
+          apt-get update
+          apt-get install -y --no-install-recommends curl ca-certificates
+          curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+          apt-get install -y --no-install-recommends nodejs
+          VER=version_119
+          curl -sSL "https://github.com/WebAssembly/binaryen/releases/download/${VER}/binaryen-${VER}-x86_64-linux.tar.gz" -o /tmp/binaryen.tgz
+          tar -xzf /tmp/binaryen.tgz -C /usr/local --strip-components=1
+          wasm-opt --version
+          curl -sSf https://rustwasm.github.io/wasm-pack/installer/init.sh | sh
+      - run: wasm-pack build
+      - run: cargo test
+      - run: npm ci
+      - run: npm install ./pkg --no-save
+      - run: npx playwright install --with-deps chromium
+      - name: Playwright E2E
+        env:
+          CI: "true"
+        run: npx playwright test
+      - run: npx tsc --noEmit
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 14
+
+  deploy:
+    runs-on: docker
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+      # Build the image and push it to the in-cluster registry. The runner's
+      # DinD sidecar is the docker host (DOCKER_HOST=tcp://localhost:2375) and
+      # carries --insecure-registry=192.168.0.194:30500, so the plain-http
+      # push to the NodePort registry round-trips. No tailnet join, no GHCR,
+      # no docker-save sideload. See coilysiren/infrastructure#168, #171.
+      - name: Build and push
+        run: |
+          set -euo pipefail
+          IMAGE=192.168.0.194:30500/coilysiren-galaxy-gen:${{ github.sha }}
+          docker build \
+            --progress plain \
+            --build-arg BUILDKIT_INLINE_CACHE=1 \
+            -t "$IMAGE" \
+            .
+          docker push "$IMAGE"
+      # Roll the deployment over the LAN. The kubeconfig points at the k3s API
+      # on the LAN IP (192.168.0.194:6443, in the cert SANs) and authenticates
+      # as the deployer ServiceAccount (deploy/main.yml). The app pod is pinned
+      # to kai-server, where registries.yaml has the insecure entry, so the
+      # cluster-side pull of 192.168.0.194:30500/... lands on that node (#171).
+      - name: Roll deployment
+        env:
+          DEPLOY_KUBECONFIG: ${{ secrets.DEPLOY_KUBECONFIG }}
+        run: |
+          set -euo pipefail
+          IMAGE=192.168.0.194:30500/coilysiren-galaxy-gen:${{ github.sha }}
+          echo "$DEPLOY_KUBECONFIG" | base64 -d > /tmp/kubeconfig
+          export KUBECONFIG=/tmp/kubeconfig
+          kubectl -n coilysiren-galaxy-gen set image \
+            deploy/coilysiren-galaxy-gen-app coilysiren-galaxy-gen="$IMAGE"
+          kubectl -n coilysiren-galaxy-gen rollout status \
+            deploy/coilysiren-galaxy-gen-app --timeout=5m
