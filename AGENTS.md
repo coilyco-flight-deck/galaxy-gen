@@ -64,7 +64,7 @@ GitHub Actions (`.github/workflows/action.yml`) runs three jobs on PR to `main`:
 
 ## Deploy
 
-Push to `main` runs the in-cluster Forgejo pipeline (`.forgejo/workflows/build-publish-deploy.yml`): test (rust + wasm + e2e), then build the Docker image and push it to the in-cluster registry `192.168.0.194:30500/coilysiren-galaxy-gen:<sha>`, then `kubectl set image` + `rollout status` against the k3s API (`https://192.168.0.194:6443`). The deploy job authenticates as the `deployer` ServiceAccount (`deploy/main.yml`) via the `DEPLOY_KUBECONFIG` Forgejo Actions secret. No tailnet join, no GHCR. See coilysiren/galaxy-gen#17, coilysiren/backend#25, coilysiren/infrastructure#168, #171.
+Push to `main` runs the in-cluster Forgejo pipeline (`.forgejo/workflows/build-publish-deploy.yml`): `cargo test`, then build the Docker image and push it to the in-cluster registry `192.168.0.194:30500/coilysiren-galaxy-gen:<sha>`, then `kubectl set image` + `rollout status` against the k3s API (`https://192.168.0.194:6443`). The deploy job authenticates as the `deployer` ServiceAccount (`deploy/main.yml`) via the `DEPLOY_KUBECONFIG` Forgejo Actions secret. The full WASM + webpack build is covered by the docker build; browser e2e + tsc stay on GitHub PR CI (the in-cluster runner can't reach the Playwright browser CDN). No tailnet join, no GHCR. See coilysiren/galaxy-gen#17, coilysiren/backend#25, coilysiren/infrastructure#168, #171.
 
 ---
 

@@ -8,48 +8,21 @@ on:
 jobs:
   test:
     runs-on: docker
-    # No `container:` override - the JS actions below (checkout,
-    # setup-node, upload-artifact) need node in the job container, which
-    # the default runner image provides but rust:* images don't. Rust is
-    # installed via rustup in a run step instead.
+    # Rust unit tests only. No `container:` override - the checkout JS action
+    # needs node in the job container, which the default runner image ships
+    # but rust:* images don't; rust is installed via rustup below. The full
+    # WASM + webpack build is exercised by the deploy job's docker build, and
+    # the browser e2e + tsc typecheck run on GitHub PR CI (.github/workflows/
+    # action.yml) - the in-cluster runner can't reach the Playwright browser
+    # CDN (cdn.playwright.dev times out).
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "20"
       - name: Install rust toolchain
         run: |
           set -euo pipefail
           curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal
           echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
-      - name: Install binaryen (pinned release) + wasm-pack
-        # Binaryen is pulled from the upstream release tarball, NOT apt:
-        # Debian's binaryen produces wasm-opt output that trips
-        # `WebAssembly.Table.grow(): failed to grow table by 4` in chromium.
-        # Keep VER in sync with the Dockerfile.
-        run: |
-          set -euo pipefail
-          VER=version_119
-          curl -sSL "https://github.com/WebAssembly/binaryen/releases/download/${VER}/binaryen-${VER}-x86_64-linux.tar.gz" -o /tmp/binaryen.tgz
-          tar -xzf /tmp/binaryen.tgz -C /usr/local --strip-components=1
-          wasm-opt --version
-          cargo install wasm-pack
-      - run: wasm-pack build
       - run: cargo test
-      - run: npm ci
-      - run: npm install ./pkg --no-save
-      - run: npx playwright install --with-deps chromium
-      - name: Playwright E2E
-        env:
-          CI: "true"
-        run: npx playwright test
-      - run: npx tsc --noEmit
-      - if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: playwright-report
-          path: playwright-report/
-          retention-days: 14
 
   deploy:
     runs-on: docker
