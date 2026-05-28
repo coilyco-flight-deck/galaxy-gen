@@ -8,28 +8,32 @@ on:
 jobs:
   test:
     runs-on: docker
-    # Same base as the Dockerfile builder, so the toolchain (cargo + the
-    # pinned binaryen) is known-good. The default docker runner image has no
-    # rust, so pin the container explicitly.
-    container: rust:1.90-bookworm
+    # No `container:` override - the JS actions below (checkout,
+    # setup-node, upload-artifact) need node in the job container, which
+    # the default runner image provides but rust:* images don't. Rust is
+    # installed via rustup in a run step instead.
     steps:
       - uses: actions/checkout@v4
-      - name: Install node + binaryen + wasm-pack
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Install rust toolchain
+        run: |
+          set -euo pipefail
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal
+          echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+      - name: Install binaryen (pinned release) + wasm-pack
         # Binaryen is pulled from the upstream release tarball, NOT apt:
         # Debian's binaryen produces wasm-opt output that trips
         # `WebAssembly.Table.grow(): failed to grow table by 4` in chromium.
         # Keep VER in sync with the Dockerfile.
         run: |
           set -euo pipefail
-          apt-get update
-          apt-get install -y --no-install-recommends curl ca-certificates
-          curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
-          apt-get install -y --no-install-recommends nodejs
           VER=version_119
           curl -sSL "https://github.com/WebAssembly/binaryen/releases/download/${VER}/binaryen-${VER}-x86_64-linux.tar.gz" -o /tmp/binaryen.tgz
           tar -xzf /tmp/binaryen.tgz -C /usr/local --strip-components=1
           wasm-opt --version
-          curl -sSf https://rustwasm.github.io/wasm-pack/installer/init.sh | sh
+          cargo install wasm-pack
       - run: wasm-pack build
       - run: cargo test
       - run: npm ci
