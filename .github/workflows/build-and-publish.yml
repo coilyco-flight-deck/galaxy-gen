@@ -1,4 +1,4 @@
-name: build-publish-deploy
+name: test
 
 on:
   push:
@@ -39,43 +39,3 @@ jobs:
           name: playwright-report
           path: playwright-report/
           retention-days: 14
-
-  deploy:
-    runs-on: ubuntu-latest
-    needs: test
-    permissions:
-      id-token: write
-      contents: read
-    steps:
-      - uses: actions/checkout@v6
-      # OIDC: GitHub mints a short-lived token, Tailscale verifies the
-      # subject against the per-repo federated identity in
-      # infrastructure/terraform/tailscale-oidc/. No long-lived bearer
-      # in the repo, no ghcr.io push, no kubeconfig in CI - just an SSH
-      # tunnel to kai-server.
-      - uses: tailscale/github-action@v4
-        with:
-          oauth-client-id: ${{ secrets.TS_CLIENT_ID }}
-          audience: ${{ secrets.TS_AUDIENCE }}
-          tags: tag:ci
-          use-cache: "true"
-          hostname: github-actions-${{ github.run_id }}
-      # SENTRY_DSN is baked into the JS bundle at build time via webpack
-      # DefinePlugin. The GH secret is synced from /sentry-dsn/galaxy-gen
-      # in AWS SSM via `aws ssm get-parameter ... | gh secret set
-      # SENTRY_DSN`.
-      - name: Build, ship, roll
-        env:
-          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
-        run: |
-          set -euo pipefail
-          IMAGE=coilysiren-galaxy-gen:${{ github.sha }}
-          name=coilysiren-galaxy-gen make .build-docker
-          docker tag coilysiren-galaxy-gen:latest "$IMAGE"
-          docker save "$IMAGE" | \
-            tailscale ssh deploy@kai-server \
-              "sudo k3s ctr -n k8s.io images import -"
-          tailscale ssh deploy@kai-server \
-            "kubectl -n coilysiren-galaxy-gen set image deploy/coilysiren-galaxy-gen-app coilysiren-galaxy-gen=$IMAGE"
-          tailscale ssh deploy@kai-server \
-            "kubectl -n coilysiren-galaxy-gen rollout status deploy/coilysiren-galaxy-gen-app --timeout=2m"

@@ -47,7 +47,7 @@ Canvas (not SVG) renderer: single `<canvas>` per frame; SVG `setAttribute` was a
 - ESLint flat + Prettier over `src/` + `e2e/`. TS noEmit typecheck. Rust `clippy -D warnings`, `cargo fmt`.
 - Playwright E2E boots dev server, asserts UI shell, init, seed cell count, tick advancement, mass redistribution, WebGPU path when `navigator.gpu` is present.
 - CI: GH Actions `rust` / `js` / `e2e` jobs on push/PR to `main`. E2E uploads HTML report on failure.
-- Sentry browser SDK in `src/js/index.js` (`SENTRY_DSN`-driven). Docker image to GHCR. Served via Caddy on k3s on `kai-server` via Tailscale at `galaxy-gen.coilysiren.me`. Caddyfile + k8s manifest under `deploy/`.
+- Sentry browser SDK in `src/js/index.js` (`SENTRY_DSN`-driven). Served via Caddy on k3s on `kai-server` at `galaxy-gen.coilysiren.me`. Caddyfile + k8s manifest under `deploy/`. Redeploys are pull-side from kai-server, not pushed from CI.
 
 ## Known scope-shape signals
 

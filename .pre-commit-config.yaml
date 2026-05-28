@@ -1,4 +1,21 @@
 repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.15.10
+    hooks:
+      - id: ruff
+        args: [--fix]
+      - id: ruff-format
+
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.20.0
+    hooks:
+      - id: mypy
+        additional_dependencies:
+          - httpx>=0.28.0
+          - mcp>=1.14.0
+          - pydantic>=2.0
+          - types-cachetools>=5.3.0
+
   - repo: local
     hooks:
       - id: trufflehog
@@ -9,6 +26,8 @@ repos:
         pass_filenames: false
         stages: [pre-commit, pre-push]
 
+  - repo: local
+    hooks:
       - id: coily-trailer
         name: coily audit-log trailer
         description: Append Audit-log trailers to the commit message based on coily's audit log for this repo.
@@ -20,12 +39,11 @@ repos:
 
   # BEGIN managed by agentic-os/scripts/apply-agentic-os-hooks.py
   - repo: https://github.com/coilysiren/agentic-os
-    rev: v0.3.0
+    rev: v0.6.0
     hooks:
       - id: catalog-doc-size
       - id: catalog-trifecta
       - id: documentation-layout
-      - id: code-comments
       - id: catalog-block-present
       - id: validate-skills
       - id: dead-cross-links

@@ -66,9 +66,8 @@ External contributors are welcome. One non-obvious prerequisite: the pre-commit 
 ## Deployment
 
 Deployed to [galaxy-gen.coilysiren.me](https://galaxy-gen.coilysiren.me).
-Docker image published to GitHub Container Registry, served through Caddy
-on k3s on `kai-server` via Tailscale. See the `deploy` GitHub Actions
-workflow for the pipeline.
+Served through Caddy on k3s on `kai-server`. Redeploys are pull-side
+from kai-server, not pushed from CI.
 
 ## Commands
 

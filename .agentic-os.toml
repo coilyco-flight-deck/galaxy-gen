@@ -1,0 +1,28 @@
+# Consumer-side opt-outs for agentic-os tree-walking hooks.
+# The v0.6.0 hook bump (required to drop providesApis, see #14 / parent #433)
+# tightened documentation-layout to cap every Markdown file at 80 lines /
+# 4000 chars and enforce flat skill folders + a root-Markdown allowlist. The
+# entries below are pre-existing doc debt surfaced by that tightening, not by
+# the catalog migration. They are excluded to unblock the bump; the real
+# cleanup (rename readme.md, relocate development.md, split perf-rewrite.md
+# and the oversized skills, restructure AGENTS.md for catalog-trifecta) is
+# tracked as a follow-up.
+
+[documentation-layout]
+excludes = [
+  "AGENTS.md",
+  "readme.md",
+  "development.md",
+  "docs/FEATURES.md",
+  "docs/perf-rewrite.md",
+  "pkg/",
+  ".agents/skills/coding-galaxy-gen-astrophysics/",
+  ".agents/skills/coding-galaxy-gen-cosmology/",
+  ".agents/skills/coding-galaxy-gen-references/",
+  ".agents/skills/tooling-skill-authoring/",
+]
+
+[catalog-trifecta]
+# AGENTS.md predates the 8-section trifecta layout; restructuring it is part
+# of the doc-cleanup follow-up, not this catalog migration.
+enabled = false

@@ -54,6 +54,4 @@ catalog:
   lifecycle: production
   description: "Procedural galaxy simulation. Rust compiled to WASM, rendered in the browser. Live at https://galaxy-gen.coilysiren.me"
   dependsOn:
-    - coilysiren/infrastructure
-  providesApis:
-    - galaxy-gen-web
+    - forgejo.coilysiren.me/coilysiren/infrastructure
