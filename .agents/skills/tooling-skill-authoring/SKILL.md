@@ -5,7 +5,7 @@ description: Skill-authoring discipline for this repo. Local categories.yaml, ho
 
 # Skill authoring for galaxy-gen
 
-Discipline document for the `.agents/skills/` surface in this repo. The skill content and the categories spec live here. The validator and link checker run as pre-commit hooks stamped from canonical copies in [`coilysiren/agentic-os/scripts/`](https://github.com/coilysiren/agentic-os/tree/main/scripts) via `make apply-skill-discipline-hooks` in `agentic-os-kai` (see [agentic-os-kai#544](https://github.com/coilysiren/agentic-os-kai/issues/544)).
+Discipline document for the `.agents/skills/` surface in this repo. The skill content and the categories spec live here. The validator and link checker run as pre-commit hooks stamped from canonical copies in [`coilysiren/agentic-os/scripts/`](https://github.com/coilyco-flight-deck/agentic-os/tree/main/scripts) via `make apply-skill-discipline-hooks` in `agentic-os-kai` (see [agentic-os-kai#544](https://github.com/coilyco-bridge/agentic-os-kai/issues/544)).
 
 Full structural rules are in [`references/handbook.md`](references/handbook.md).
 
@@ -99,4 +99,4 @@ If the name does not resolve to a real skill in this repo, `dead-cross-links` fl
 
 ## Upgrading the hooks
 
-When the canonical scripts in [`coilysiren/agentic-os/scripts/`](https://github.com/coilysiren/agentic-os/tree/main/scripts) change, re-run `make apply-skill-discipline-hooks` from `agentic-os-kai` to re-stamp local copies into every consumer repo. Re-run the suite to confirm nothing broke before pushing.
+When the canonical scripts in [`coilysiren/agentic-os/scripts/`](https://github.com/coilyco-flight-deck/agentic-os/tree/main/scripts) change, re-run `make apply-skill-discipline-hooks` from `agentic-os-kai` to re-stamp local copies into every consumer repo. Re-run the suite to confirm nothing broke before pushing.

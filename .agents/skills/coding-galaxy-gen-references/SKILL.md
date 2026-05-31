@@ -5,7 +5,7 @@ description: External reference resources for the galaxy sim - real-galaxy catal
 
 # References for galaxy-gen
 
-Repo: [coilysiren/galaxy-gen](https://github.com/coilysiren/galaxy-gen). Sister skills: [`coding-galaxy-gen-astrophysics`](../coding-galaxy-gen-astrophysics/SKILL.md) (galaxy-scale physics), [`coding-galaxy-gen-cosmology`](../coding-galaxy-gen-cosmology/SKILL.md) (universe-scale physics).
+Repo: [coilysiren/galaxy-gen](https://github.com/coilyco-flight-deck/galaxy-gen). Sister skills: [`coding-galaxy-gen-astrophysics`](../coding-galaxy-gen-astrophysics/SKILL.md) (galaxy-scale physics), [`coding-galaxy-gen-cosmology`](../coding-galaxy-gen-cosmology/SKILL.md) (universe-scale physics).
 
 This skill is about pointers, not theory. Use it when the sim needs a number from the real universe, or when you want to look at how a battle-tested gravitational simulator handles a problem instead of redesigning it yourself.
 

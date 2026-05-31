@@ -61,7 +61,7 @@ Open-source galaxy / n-body / WASM-sim projects worth studying. Surfaced with ad
 
 ## Contributing
 
-External contributors are welcome. One non-obvious prerequisite: the pre-commit pipeline includes a `coily-trailer` hook that calls [`coily`](https://github.com/coilysiren/coily), a CLI used to audit and trail commits across this workspace. Install it before your first commit, or the hook will fail.
+External contributors are welcome. One non-obvious prerequisite: the pre-commit pipeline includes a `coily-trailer` hook that calls [`coily`](https://github.com/coilyco-bridge/coily), a CLI used to audit and trail commits across this workspace. Install it before your first commit, or the hook will fail.
 
 ## Deployment
 
@@ -79,4 +79,4 @@ Dev commands are declared in [`.coily/coily.yaml`](.coily/coily.yaml). Run them 
 - [docs/FEATURES.md](docs/FEATURES.md) - inventory of what ships today.
 - [.coily/coily.yaml](.coily/coily.yaml) - allowlisted commands.
 
-Cross-reference convention from [coilysiren/agentic-os#59](https://github.com/coilysiren/agentic-os/issues/59).
+Cross-reference convention from [coilysiren/agentic-os#59](https://github.com/coilyco-flight-deck/agentic-os/issues/59).

@@ -1,6 +1,6 @@
 # Skill handbook for galaxy-gen
 
-Companion to [`../SKILL.md`](../SKILL.md). Structural reference for the `.agents/skills/` surface in this repo. Rules below are enforced by the hooks subscribed from [agentic-os](https://github.com/coilysiren/agentic-os) against [`.agents/skills/categories.yaml`](../../categories.yaml).
+Companion to [`../SKILL.md`](../SKILL.md). Structural reference for the `.agents/skills/` surface in this repo. Rules below are enforced by the hooks subscribed from [agentic-os](https://github.com/coilyco-flight-deck/agentic-os) against [`.agents/skills/categories.yaml`](../../categories.yaml).
 
 The machine-readable spec is `categories.yaml`. When this file and the YAML disagree, the YAML is authoritative. Update both together.
 
@@ -81,7 +81,7 @@ The hooks below run on every commit. All must pass.
 
 * `trufflehog` - offline secret scan (local hook).
 * `coily-trailer` - audit-log trailer (local hook, requires the coily CLI).
-* `skill-conventions` - structure, size, prefix taxonomy. From [agentic-os](https://github.com/coilysiren/agentic-os).
+* `skill-conventions` - structure, size, prefix taxonomy. From [agentic-os](https://github.com/coilyco-flight-deck/agentic-os).
 * `dead-cross-links` - resolves every inline markdown link inside `.agents/skills/` to a real file. From agentic-os.
 * `commit-closes-issue` - commit-msg gate requiring `closes #N` for a same-repo issue. From agentic-os.
 

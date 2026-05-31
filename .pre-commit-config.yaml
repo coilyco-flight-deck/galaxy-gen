@@ -38,7 +38,7 @@ repos:
         require_serial: true
 
   # BEGIN managed by agentic-os/scripts/apply-agentic-os-hooks.py
-  - repo: https://github.com/coilysiren/agentic-os
+  - repo: https://github.com/coilyco-flight-deck/agentic-os
     rev: v0.11.1
     hooks:
       - id: catalog-doc-size

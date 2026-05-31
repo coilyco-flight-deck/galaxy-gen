@@ -126,7 +126,7 @@ without `extern crate`.
 diff --git a/Cargo.toml b/Cargo.toml
 --- a/Cargo.toml
 +++ b/Cargo.toml
-@@ -7,6 +7,7 @@ repository = "https://github.com/coilysiren/galaxy-gen"
+@@ -7,6 +7,7 @@ repository = "https://github.com/coilyco-flight-deck/galaxy-gen"
  version = "0.0.1"
  authors = ["Kai Siren <coilysiren@gmail.com>"]
  license = "AGPL"
@@ -1111,7 +1111,7 @@ diminishing returns relative to the cost of implementation.
 [package]
 name = "galaxy_gen_backend"
 description = "{ rust => wasm => js } galaxy generation simulation"
-repository = "https://github.com/coilysiren/galaxy-gen"
+repository = "https://github.com/coilyco-flight-deck/galaxy-gen"
 version = "0.0.1"
 authors = ["Kai Siren <coilysiren@gmail.com>"]
 license = "AGPL"
