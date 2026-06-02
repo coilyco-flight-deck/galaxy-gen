@@ -34,6 +34,14 @@ categories:
     exact: galaxy-gen
     enforce_status: false
 
+  # Auto-generated repo-<name> pointer skill. role: repo-pointer defers
+  # shape enforcement to the dedicated repo-pointer-skills hook.
+  - id: repo
+    kind: prefix
+    prefix: repo-
+    role: repo-pointer
+    enforce_status: false
+
 # ---- Global checks ----
 
 # Strings that must not appear in any SKILL.md body. Populate when a
