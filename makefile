@@ -17,6 +17,12 @@ git-hash    ?= $(shell git rev-parse HEAD 2>/dev/null || echo dev)
 # pulls it via its registries.yaml insecure entry. See
 # coilysiren/infrastructure#168, #171.
 image-url   ?= 192.168.0.194:30500/$(name-dashed):$(git-hash)
+# k3s API endpoint for `.deploy`. Default to the LAN IP, which is rock-solid
+# from on-LAN hosts and is in the cert SANs. The kubeconfig's `kai-server`
+# context resolves to the tailnet IP (MagicDNS), whose route is flaky/slow and
+# i/o-times-out mid-apply. Override (`make deploy k8s-api=https://kai-server:6443`)
+# when deploying off-LAN where only the tailnet is reachable. See galaxy-gen#25.
+k8s-api     ?= https://192.168.0.194:6443
 
 help: ## Show this help
 	@perl -nle'print $& if m{^[a-zA-Z_-]+:.*?## .*$$}' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-25s\033[0m %s\n", $$1, $$2}'
@@ -113,8 +119,8 @@ publish: build-docker .publish ## Tag and push the docker image to the in-cluste
 		NAME=$(name-dashed) \
 		DNS_NAME=$(dns-name) \
 		IMAGE=$(image-url) \
-		envsubst < deploy/main.yml | kubectl apply -f -
-	kubectl rollout status deployment/$(name-dashed)-app -n $(name-dashed) --timeout=5m
+		envsubst < deploy/main.yml | kubectl --server=$(k8s-api) apply -f -
+	kubectl --server=$(k8s-api) rollout status deployment/$(name-dashed)-app -n $(name-dashed) --timeout=5m
 
 # Stream the rendered manifest over Tailscale SSH and apply on kai-server.
 # Fallback path when the tailnet kubectl route is unavailable.
