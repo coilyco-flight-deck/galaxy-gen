@@ -43,6 +43,9 @@ commands:
   publish:
     run: make publish
     description: Tag and push the docker image to the in-cluster registry.
+  deploy:
+    run: make deploy
+    description: Build, push, and apply to the cluster
 
 # Catalog metadata for the cross-repo knowledge graph.
 # Schema: coilysiren/agentic-os-kai#420 (tracker).
