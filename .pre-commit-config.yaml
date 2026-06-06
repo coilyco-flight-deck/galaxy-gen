@@ -26,17 +26,6 @@ repos:
         pass_filenames: false
         stages: [pre-commit, pre-push]
 
-  - repo: local
-    hooks:
-      - id: coily-trailer
-        name: coily audit-log trailer
-        description: Append Audit-log trailers to the commit message based on coily's audit log for this repo.
-        entry: coily git trailer-hook
-        language: system
-        stages: [prepare-commit-msg]
-        always_run: true
-        require_serial: true
-
   # BEGIN managed by agentic-os/scripts/apply-agentic-os-hooks.py
   - repo: https://github.com/coilyco-flight-deck/agentic-os
     rev: v0.11.1
@@ -53,5 +42,4 @@ repos:
       - id: closes-issue
       - id: conventional-commit
       - id: trufflehog
-      - id: coily-trailer
   # END managed by agentic-os/scripts/apply-agentic-os-hooks.py

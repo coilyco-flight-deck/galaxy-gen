@@ -54,16 +54,18 @@ ENV SENTRY_DSN=${SENTRY_DSN}
 RUN npm run build
 
 # -----------------------------------------------------------------------------
-# Stage 2: Caddy static server
+# Stage 2: pure data image - the built bundle + its Caddyfile, nothing to run.
 # -----------------------------------------------------------------------------
-FROM caddy:2-alpine AS runtime
+# The runtime is a *stock, unmodified* caddy:2-alpine in the Deployment (see
+# deploy/main.yml). This image carries only the payload: an initContainer runs
+# it and copies /dist + /Caddyfile into a shared emptyDir the caddy container
+# then serves. So the asset bundle and its server config roll atomically per
+# git-sha while the serving layer stays byte-for-byte upstream caddy.
+#
+# Base is busybox (not scratch) because the initContainer needs `sh`/`cp` to
+# move the payload into the volume. Swap to `FROM scratch` + a `volumes[].image`
+# mount once kai-server is on k8s 1.33+ (ImageVolume GA). See galaxy-gen#22.
+FROM busybox:1.37 AS runtime
 
-COPY --from=builder /app/dist /usr/share/caddy
-COPY deploy/Caddyfile /etc/caddy/Caddyfile
-
-ENV PORT=8080
-EXPOSE 8080
-HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
-  CMD wget -q --spider http://localhost:8080/ || exit 1
-
-CMD ["caddy", "run", "--config", "/etc/caddy/Caddyfile", "--adapter", "caddyfile"]
+COPY --from=builder /app/dist /dist
+COPY deploy/Caddyfile /Caddyfile

@@ -86,6 +86,10 @@ jobs:
       # as the deployer ServiceAccount (deploy/main.yml). The app pod is pinned
       # to kai-server, where registries.yaml has the insecure entry, so the
       # cluster-side pull of 192.168.0.194:30500/... lands on that node (#171).
+      # The `coilysiren-galaxy-gen` container is now the bundle-loader
+      # initContainer (the serving container is stock caddy and never changes);
+      # `kubectl set image` matches initContainers by name, so swapping its
+      # per-sha image is what triggers the rollout. See galaxy-gen#22.
       - name: Roll deployment
         env:
           DEPLOY_KUBECONFIG: ${{ secrets.DEPLOY_KUBECONFIG }}

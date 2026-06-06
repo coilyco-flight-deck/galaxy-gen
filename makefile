@@ -80,8 +80,20 @@ test: test-rust test-e2e ## Run all tests (rust + e2e)
 
 build-docker: .build-docker ## Build the docker image locally with BuildKit cache.
 
-run-docker: ## Run the production image locally on $(port)
-	docker run -e PORT=$(port) -p $(port):$(port) -it --rm $(name):latest
+# The built image is now a pure data bundle (busybox + /dist + /Caddyfile),
+# not a server - so local serving mirrors the k8s split: extract the payload
+# from the bundle image, then serve it with stock caddy over a bind mount.
+run-docker: ## Serve the built bundle locally via stock caddy (mirrors the k8s initContainer + caddy split).
+	docker rm -f $(name-dashed)-bundle 2>/dev/null || true
+	docker create --name $(name-dashed)-bundle $(name):latest >/dev/null
+	rm -rf /tmp/$(name-dashed)-dist && mkdir -p /tmp/$(name-dashed)-dist
+	docker cp $(name-dashed)-bundle:/dist/. /tmp/$(name-dashed)-dist/
+	docker cp $(name-dashed)-bundle:/Caddyfile /tmp/$(name-dashed)-Caddyfile
+	docker rm -f $(name-dashed)-bundle >/dev/null
+	docker run --rm -e PORT=$(port) -p $(port):$(port) \
+		-v /tmp/$(name-dashed)-dist:/usr/share/caddy:ro \
+		-v /tmp/$(name-dashed)-Caddyfile:/etc/caddy/Caddyfile:ro \
+		caddy:2-alpine
 
 .publish:
 	docker tag $(name):$(git-hash) $(image-url)
