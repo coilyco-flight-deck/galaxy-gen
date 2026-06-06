@@ -68,8 +68,15 @@ test: test-rust test-e2e ## Run all tests (rust + e2e)
 
 # --- Docker / deploy (same shape as eco-spec-tracker) ----------------------
 
+# --platform linux/amd64 is load-bearing: the cluster node (kai-server) is
+# amd64 and the build stage hardcodes the x86_64 binaryen tarball, so the
+# image is intrinsically amd64. Without this, a build on an arm64 host (Apple
+# Silicon + OrbStack) pushes an arm64 manifest the node rejects at pull time
+# with "no match for platform in manifest". CI's runner is already amd64, so
+# the flag is a no-op there. See coilysiren/galaxy-gen#23.
 .build-docker:
 	docker build \
+		--platform linux/amd64 \
 		--progress plain \
 		--build-arg BUILDKIT_INLINE_CACHE=1 \
 		--build-arg SENTRY_DSN=$(SENTRY_DSN) \
