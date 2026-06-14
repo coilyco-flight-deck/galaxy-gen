@@ -47,6 +47,18 @@ commands:
     run: make deploy
     description: Build, push, and apply to the cluster
 
+# Provider skills this leaf pulls into its git-excluded .agents/skills/ for
+# confined harnesses (OpenClaw on Qwen). Resolved by scripts/pull-capabilities.py
+# and enforced by scripts/validate-harness-skills.py. Spec: the capability_pull
+# block of agentic-os-kai .agents/skills/categories.yaml. Keep this list minimal:
+# every entry widens what a 25k-budget Qwen session can see. galaxy-gen is
+# Rust -> WASM core + React/D3/TS browser surface, so exactly those two languages.
+# Infra (k8s / terraform) is deliberately omitted - Qwen escalates infra, it does
+# not run it (see kai-qwen-scope).
+capabilities:
+  - agentic-os/coding-rust
+  - agentic-os/coding-javascript-react
+
 # Catalog metadata for the cross-repo knowledge graph.
 # Schema: coilysiren/agentic-os-kai#420 (tracker).
 catalog:
