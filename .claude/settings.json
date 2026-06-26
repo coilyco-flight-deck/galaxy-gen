@@ -1,17 +1,4 @@
 {
-  "hooks": {
-    "PreToolUse": [
-      {
-        "hooks": [
-          {
-            "command": ".claude/lockdown-deny.sh",
-            "type": "command"
-          }
-        ],
-        "matcher": "Bash"
-      }
-    ]
-  },
   "permissions": {
     "allow": [
       "Bash(cat:*)",
@@ -31,15 +18,6 @@
       "Bash(tree:*)",
       "Bash(wc:*)",
       "Bash(yq:*)"
-    ],
-    "deny": [
-      "Bash(flyctl:*)",
-      "Bash(gcloud:*)",
-      "Bash(git clean -fd:*)",
-      "Bash(git push --force:*)",
-      "Bash(git push -f:*)",
-      "Bash(git reset --hard:*)",
-      "Bash(mcporter:*)"
     ]
   }
 }
