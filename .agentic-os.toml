@@ -4,14 +4,14 @@
 # 4000 chars and enforce flat skill folders + a root-Markdown allowlist. The
 # entries below are pre-existing doc debt surfaced by that tightening, not by
 # the catalog migration. They are excluded to unblock the bump; the real
-# cleanup (rename readme.md, relocate development.md, split perf-rewrite.md
+# cleanup (relocate development.md, split perf-rewrite.md
 # and the oversized skills, restructure AGENTS.md for catalog-trifecta) is
 # tracked as a follow-up.
 
 [documentation-layout]
 excludes = [
   "AGENTS.md",
-  "readme.md",
+  "README.md",
   "development.md",
   "docs/FEATURES.md",
   "docs/perf-rewrite.md",
@@ -26,3 +26,22 @@ excludes = [
 # AGENTS.md predates the 8-section trifecta layout; restructuring it is part
 # of the doc-cleanup follow-up, not this catalog migration.
 enabled = false
+
+[code-comments]
+# The v0.21.0+ code-comments hook allows YAML comments only in the top header
+# block (a key-sorter would drift a mid-file comment from its target). This
+# repo's YAML is operational config - a multi-document k8s manifest, CI
+# workflows, command allowlists - whose inline comments explain the specific
+# resource or key they sit beside, so hoisting them to a top header or docs/
+# would strip that locality. Excluded here (the same escape hatch eco-* repos
+# use to skip code-comments) so the hook still governs Rust/TS/JS source, where
+# the two-line rule fits. See galaxy-gen#24.
+excludes = [
+  "deploy/",
+  ".forgejo/",
+  ".github/",
+  ".coily/",
+  ".ward/",
+  ".agents/skills/categories.yaml",
+  ".pre-commit-config.yaml",
+]

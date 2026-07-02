@@ -1,6 +1,6 @@
 # galaxy-gen feature inventory
 
-Baseline of what ships. Pairs with `readme.md` (pitch) and `development.md` (architecture).
+Baseline of what ships. Pairs with `README.md` (pitch) and `development.md` (architecture).
 
 ## Simulation core (Rust, `src/rust/galaxy.rs`)
 
