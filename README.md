@@ -66,8 +66,10 @@ External contributors are welcome. One non-obvious prerequisite: the pre-commit 
 ## Deployment
 
 Deployed to [galaxy-gen.coilysiren.me](https://galaxy-gen.coilysiren.me).
-Served through Caddy on k3s on `kai-server`. Redeploys are pull-side
-from kai-server, not pushed from CI.
+Served through a stock Caddy on k3s on `kai-server`. A push to `main` runs the
+in-cluster Forgejo Actions pipeline (build the amd64 bundle, push it to the
+node-local registry, roll the Deployment). See [docs/deploy.md](docs/deploy.md)
+for both deploy paths and their host prerequisites.
 
 ## Commands
 
@@ -77,6 +79,7 @@ Dev commands are declared in [`.coily/coily.yaml`](.coily/coily.yaml). Run them 
 
 - [AGENTS.md](AGENTS.md) - agent-facing operating rules.
 - [docs/FEATURES.md](docs/FEATURES.md) - inventory of what ships today.
+- [docs/deploy.md](docs/deploy.md) - deploy paths + host prerequisites.
 - [.coily/coily.yaml](.coily/coily.yaml) - allowlisted commands.
 
 Cross-reference convention from [coilysiren/agentic-os#59](https://github.com/coilyco-flight-deck/agentic-os/issues/59).

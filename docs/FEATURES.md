@@ -47,7 +47,7 @@ Canvas (not SVG) renderer: single `<canvas>` per frame; SVG `setAttribute` was a
 - ESLint flat + Prettier over `src/` + `e2e/`. TS noEmit typecheck. Rust `clippy -D warnings`, `cargo fmt`.
 - Playwright E2E boots dev server, asserts UI shell, init, seed cell count, tick advancement, mass redistribution, WebGPU path when `navigator.gpu` is present.
 - CI: GH Actions `rust` / `js` / `e2e` jobs on push/PR to `main`. E2E uploads HTML report on failure.
-- Sentry browser SDK in `src/js/index.js` (`SENTRY_DSN`-driven). Served on k3s on `kai-server` at `galaxy-gen.coilysiren.me` by a **stock, unmodified `caddy:2-alpine`** - the built image (`Dockerfile` stage 2) is a pure busybox data bundle (`/dist` + `/Caddyfile`), and an initContainer copies that payload into shared emptyDirs the caddy container serves. Bundle and Caddyfile roll atomically per git-sha. Caddyfile + k8s manifest under `deploy/`. Swap to a `volumes[].image` mount once kai-server is on k8s 1.33+. See galaxy-gen#22.
+- Sentry browser SDK in `src/js/index.js` (`SENTRY_DSN`-driven). Served on k3s on `kai-server` at `galaxy-gen.coilysiren.me` by a **stock, unmodified `caddy:2-alpine`** - the built image (`Dockerfile` stage 2) is a pure busybox data bundle (`/dist` + `/Caddyfile`), and an initContainer copies that payload into shared emptyDirs the caddy container serves. Bundle and Caddyfile roll atomically per git-sha. Caddyfile + k8s manifest under `deploy/`. Swap to a `volumes[].image` mount once kai-server is on k8s 1.33+. See galaxy-gen#22. Deploy paths (CI push-side + local `ward exec deploy`) and their host/infra prerequisites are walked through in [deploy.md](deploy.md).
 
 ## Known scope-shape signals
 
@@ -57,6 +57,7 @@ README lists nine inspirational sibling projects; consult when evaluating scope 
 
 - [README.md](../README.md) - human-facing intro.
 - [AGENTS.md](../AGENTS.md) - agent-facing operating rules.
+- [deploy.md](deploy.md) - deploy paths + host/infra prerequisites.
 - [.coily/coily.yaml](../.coily/coily.yaml) - allowlisted commands.
 
 Cross-reference convention from [coilysiren/agentic-os#59](https://github.com/coilyco-flight-deck/agentic-os/issues/59).

@@ -96,8 +96,26 @@ jobs:
         run: |
           set -euo pipefail
           IMAGE=192.168.0.194:30500/coilysiren-galaxy-gen:${{ github.sha }}
+          # Guard the one credential this step needs. Build+push above touch no
+          # cluster auth, so a missing/stale secret only bites here - and did,
+          # historically, as a 0-second kubectl connection failure with no clue
+          # why (galaxy-gen#26). The secret is a base64 kubeconfig for the
+          # deployer SA (deploy/main.yml). It does NOT survive a repo move
+          # between Forgejo orgs and must be re-set on the current repo. See
+          # docs/deploy.md.
+          if [ -z "${DEPLOY_KUBECONFIG:-}" ]; then
+            echo "DEPLOY_KUBECONFIG is empty or unset: the deploy job cannot" >&2
+            echo "authenticate to the cluster. Set it in this repo's Forgejo" >&2
+            echo "Actions secrets (docs/deploy.md has the how)." >&2
+            exit 1
+          fi
           echo "$DEPLOY_KUBECONFIG" | base64 -d > /tmp/kubeconfig
           export KUBECONFIG=/tmp/kubeconfig
+          # Preflight auth + connectivity + RBAC against the exact resource we
+          # roll, using a verb the deployer SA holds (get on deployments in its
+          # namespace). A stale kubeconfig or unreachable API surfaces here with
+          # a clear error rather than mid-rollout.
+          kubectl -n coilysiren-galaxy-gen get deploy/coilysiren-galaxy-gen-app -o name
           kubectl -n coilysiren-galaxy-gen set image \
             deploy/coilysiren-galaxy-gen-app coilysiren-galaxy-gen="$IMAGE"
           kubectl -n coilysiren-galaxy-gen rollout status \
