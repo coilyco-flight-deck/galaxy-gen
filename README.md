@@ -66,10 +66,11 @@ External contributors are welcome. One non-obvious prerequisite: the pre-commit 
 ## Deployment
 
 Deployed to [galaxy-gen.coilysiren.me](https://galaxy-gen.coilysiren.me).
-Served through a stock Caddy on k3s on `kai-server`. A push to `main` runs the
-in-cluster Forgejo Actions pipeline (build the amd64 bundle, push it to the
-node-local registry, roll the Deployment). See [docs/deploy.md](docs/deploy.md)
-for both deploy paths and their host prerequisites.
+Served through a stock Caddy on k3s on `kai-server`. A push to `main` runs CI
+tests only. Redeploys happen through the pull-side updater, with
+[`ward exec deploy`](docs/deploy-local.md) as the manual fallback. See
+[docs/deploy.md](docs/deploy.md) for the current deploy paths and host
+prerequisites.
 
 ## Commands
 
