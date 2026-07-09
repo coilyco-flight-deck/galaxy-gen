@@ -40,7 +40,6 @@ excludes = [
   "deploy/",
   ".forgejo/",
   ".github/",
-  ".coily/",
   ".ward/",
   ".agents/skills/categories.yaml",
   ".pre-commit-config.yaml",

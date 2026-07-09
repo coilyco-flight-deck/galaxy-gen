@@ -17,7 +17,7 @@ Load-bearing files you will touch most often:
 - `src/js/lib/galaxy.ts` - `Frontend` class; the JS ↔ WASM boundary.
 - `src/js/lib/application.tsx` - React UI (controls + buttons). Test IDs on inputs/buttons (`data-testid="btn-init"` etc.) are load-bearing for E2E.
 - `src/js/lib/dataviz.tsx` - D3 scatter plot into `#dataviz`.
-- `src/js/lib/styles.css` - custom styles (dark theme, coilysiren palette).
+- `src/js/lib/styles.css` - custom styles (dark theme, galaxy-gen palette).
 - `e2e/galaxy.spec.ts` - Playwright end-to-end tests.
 - `playwright.config.ts` - Playwright config; auto-boots webpack-dev-server.
 - `webpack.config.js` - dev server (HMR + live-reload on `pkg/` changes).
@@ -76,7 +76,7 @@ Route every dev command through ward, which reads [`.ward/ward.yaml`](.ward/ward
 
 - [README.md](README.md) - human-facing intro.
 - [docs/FEATURES.md](docs/FEATURES.md) - inventory of what ships today.
-- [.coily/coily.yaml](.coily/coily.yaml) - allowlisted commands.
+- [.ward/ward.yaml](.ward/ward.yaml) - allowlisted commands.
 - [.ward/ward.yaml](.ward/ward.yaml) - allowlisted commands (`ward exec`).
 
-Cross-reference convention from [coilysiren/agentic-os#59](https://github.com/coilyco-flight-deck/agentic-os/issues/59).
+Cross-reference convention from agentic-os#59.

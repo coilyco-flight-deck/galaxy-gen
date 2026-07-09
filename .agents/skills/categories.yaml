@@ -48,6 +48,6 @@ categories:
 # deprecated skill name needs to stay out of cross-links.
 forbidden_body_strings: []
 
-# Size caps. All defaults from coilysiren/agentic-os apply when unset:
+# Size caps. All defaults from agentic-os apply when unset:
 # max_skill_md_lines (500), max_skill_md_bytes (10000),
 # max_description_bytes (1200). Override here or set to 0 to disable.

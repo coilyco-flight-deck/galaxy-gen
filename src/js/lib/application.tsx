@@ -525,7 +525,7 @@ export function Interface() {
         </section>
 
         <footer className="mt-10 text-center text-xs tracking-[0.15em] uppercase text-[color:var(--color-plum-400)]">
-          coilysiren · galaxy-gen
+          galaxy-gen
         </footer>
       </main>
     </div>

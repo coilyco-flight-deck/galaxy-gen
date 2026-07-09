@@ -27,7 +27,7 @@ See the [makefile](makefile) for the full set of targets and
 - `src/js/lib/galaxy.ts` — `Frontend` class; the JS ↔ WASM boundary.
 - `src/js/lib/application.tsx` — React UI (inputs, buttons, `data-testid`s).
 - `src/js/lib/dataviz.tsx` — D3 scatter plot into `#dataviz`.
-- `src/js/lib/styles.css` — Tailwind v4 + custom coilysiren palette.
+- `src/js/lib/styles.css` — Tailwind v4 + custom palette.
 - `e2e/galaxy.spec.ts` — Playwright end-to-end tests.
 - `dist/` — production webpack build output (gitignored).
 
@@ -61,7 +61,7 @@ Open-source galaxy / n-body / WASM-sim projects worth studying. Surfaced with ad
 
 ## Contributing
 
-External contributors are welcome. One non-obvious prerequisite: the pre-commit pipeline includes a `coily-trailer` hook that calls [`coily`](https://github.com/coilyco-bridge/coily), a CLI used to audit and trail commits across this workspace. Install it before your first commit, or the hook will fail.
+External contributors are welcome. The pre-commit pipeline includes the ward lockdown checks and audit trail hooks that guard this workspace. Run them before your first commit, or the hook will fail.
 
 ## Deployment
 
@@ -74,13 +74,13 @@ prerequisites.
 
 ## Commands
 
-Dev commands are declared in [`.coily/coily.yaml`](.coily/coily.yaml). Run them as `coily exec <verb>`.
+Dev commands are declared in [`.ward/ward.yaml`](.ward/ward.yaml). Run them as `ward exec <verb>`.
 
 ## See also
 
 - [AGENTS.md](AGENTS.md) - agent-facing operating rules.
 - [docs/FEATURES.md](docs/FEATURES.md) - inventory of what ships today.
 - [docs/deploy.md](docs/deploy.md) - deploy paths + host prerequisites.
-- [.coily/coily.yaml](.coily/coily.yaml) - allowlisted commands.
+- [.ward/ward.yaml](.ward/ward.yaml) - allowlisted commands.
 
-Cross-reference convention from [coilysiren/agentic-os#59](https://github.com/coilyco-flight-deck/agentic-os/issues/59).
+Cross-reference convention from agentic-os#59.
