@@ -1,10 +1,17 @@
-# Per-repo command allowlist for galaxy-gen. Coily is the canonical entry
+# Per-repo command allowlist for galaxy-gen. Ward is the canonical entry
 # point for dev verbs here; each command below delegates to a Make target
 # that wraps cargo / wasm-pack / npx / playwright.
 #
-# Names follow coily's [a-z0-9-] rule. Argv validation rejects shell
+# Names follow ward's [a-z0-9-] rule. Argv validation rejects shell
 # metacharacters at invocation time, so flags forward verbatim through
-# coily's user-extras mechanism.
+# ward's argv handling.
+
+dns-name: galaxy-gen.coilysiren.me
+email: kai@users.noreply.github.com
+name: coilyco-flight-deck/galaxy-gen
+port: 8080
+tailnet:
+  shortcut: galaxy-gen
 
 commands:
   install:
@@ -60,13 +67,17 @@ capabilities:
   - agentic-os/coding-javascript-react
 
 # Catalog metadata for the cross-repo knowledge graph.
-# Schema: coilysiren/agentic-os-kai#420 (tracker).
+# Schema: agentic-os-kai#420 (tracker).
 catalog:
   kind: Component
   type: website
   system: shared
   owner: kai
   lifecycle: production
-  description: "Procedural galaxy simulation. Rust compiled to WASM, rendered in the browser. Live at https://galaxy-gen.coilysiren.me"
+  description: "Procedural galaxy simulation. Rust compiled to WASM, rendered in the browser."
   dependsOn:
     - forgejo.coilysiren.me/coilysiren/infrastructure
+security:
+  protected_binaries: []
+  sudo:
+    forbid_passwordless: true

@@ -5,7 +5,7 @@ description: Galaxy-scale astrophysics for the procedural galaxy sim. Morphology
 
 # Astrophysics for galaxy-gen
 
-Repo: [coilysiren/galaxy-gen](https://github.com/coilyco-flight-deck/galaxy-gen). Stack: Rust compiled to WASM, rendered in the browser via JS/TS. Sister skill: [`coding-galaxy-gen-cosmology`](../coding-galaxy-gen-cosmology/SKILL.md) covers the cosmological-scale physics.
+Repo: galaxy-gen. Stack: Rust compiled to WASM, rendered in the browser via JS/TS. Sister skill: [`coding-galaxy-gen-cosmology`](../coding-galaxy-gen-cosmology/SKILL.md) covers the cosmological-scale physics.
 
 This skill encodes the galaxy-scale astrophysics that should shape design decisions. It is not a survey of the field. It is the subset that maps onto procedural-sim choices: what to sample, what to ignore, what gets a closed-form approximation vs. a particle simulation.
 

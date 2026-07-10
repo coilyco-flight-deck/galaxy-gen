@@ -58,6 +58,6 @@ README lists nine inspirational sibling projects; consult when evaluating scope 
 - [README.md](../README.md) - human-facing intro.
 - [AGENTS.md](../AGENTS.md) - agent-facing operating rules.
 - [deploy.md](deploy.md) - deploy paths + host/infra prerequisites.
-- [.coily/coily.yaml](../.coily/coily.yaml) - allowlisted commands.
+- [.ward/ward.yaml](../.ward/ward.yaml) - allowlisted commands.
 
-Cross-reference convention from [coilysiren/agentic-os#59](https://github.com/coilyco-flight-deck/agentic-os/issues/59).
+Cross-reference convention from agentic-os#59.

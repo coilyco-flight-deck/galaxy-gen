@@ -5,7 +5,7 @@ description: Cosmology and relativity for the procedural galaxy sim. Universe-sc
 
 # Cosmology for galaxy-gen
 
-Repo: [coilysiren/galaxy-gen](https://github.com/coilyco-flight-deck/galaxy-gen). Stack: Rust to WASM in the browser. Sister skill: [`coding-galaxy-gen-astrophysics`](../coding-galaxy-gen-astrophysics/SKILL.md) covers galaxy-scale physics.
+Repo: galaxy-gen. Stack: Rust to WASM in the browser. Sister skill: [`coding-galaxy-gen-astrophysics`](../coding-galaxy-gen-astrophysics/SKILL.md) covers galaxy-scale physics.
 
 This skill covers physics that only matters when the sim's scene is bigger than one galaxy, or when the visual needs to be redshift-aware. A single isolated-galaxy sim can largely ignore this. A cosmic-web or "zoom out" sim cannot.
 
