@@ -28,6 +28,12 @@ jobs:
           sudo tar -xzf /tmp/binaryen.tgz -C /usr/local --strip-components=1
           wasm-opt --version
       - run: wasm-pack build
+      - name: Alert Telegram on main failure
+        if: ${{ failure() && github.ref == 'refs/heads/main' }}
+        uses: coilyco-flight-deck/agentic-os/actions/telegram-alert@main
+        with:
+          bot-token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          chat-id: ${{ secrets.TELEGRAM_RED_CHAT_ID }}
   js:
     runs-on: ubuntu-latest
     steps:
@@ -54,6 +60,12 @@ jobs:
       - run: npm ci
       - run: npm run build
 
+      - name: Alert Telegram on main failure
+        if: ${{ failure() && github.ref == 'refs/heads/main' }}
+        uses: coilyco-flight-deck/agentic-os/actions/telegram-alert@main
+        with:
+          bot-token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          chat-id: ${{ secrets.TELEGRAM_RED_CHAT_ID }}
   e2e:
     runs-on: ubuntu-latest
     needs: [rust, js]
@@ -91,3 +103,9 @@ jobs:
           name: playwright-report
           path: playwright-report/
           retention-days: 14
+      - name: Alert Telegram on main failure
+        if: ${{ failure() && github.ref == 'refs/heads/main' }}
+        uses: coilyco-flight-deck/agentic-os/actions/telegram-alert@main
+        with:
+          bot-token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          chat-id: ${{ secrets.TELEGRAM_RED_CHAT_ID }}

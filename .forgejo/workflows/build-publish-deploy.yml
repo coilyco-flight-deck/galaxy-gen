@@ -20,3 +20,9 @@ jobs:
           curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal
           echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
       - run: cargo test
+      - name: Alert Telegram on main failure
+        if: ${{ failure() && github.ref == 'refs/heads/main' }}
+        uses: coilyco-flight-deck/agentic-os/actions/telegram-alert@main
+        with:
+          bot-token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          chat-id: ${{ secrets.TELEGRAM_RED_CHAT_ID }}
