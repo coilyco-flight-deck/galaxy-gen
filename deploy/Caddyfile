@@ -7,6 +7,12 @@
 
     encode zstd gzip
 
+    # Tailnet-only shortcut for the skillsmp MCP. The pod's Tailscale sidecar
+    # can reach the same NodePort backend the direct harness uses.
+    handle_path /skillsmp/* {
+        reverse_proxy kai-server:30081
+    }
+
     # Ensure .wasm is served with the correct MIME type so browsers can
     # stream-instantiate it (otherwise Chrome falls back to a slower path).
     @wasm {

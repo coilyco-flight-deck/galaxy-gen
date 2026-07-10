@@ -11,6 +11,10 @@ There are two deploy paths now:
 - Local (`ward exec deploy` on an on-LAN host) - see
   [deploy-local.md](deploy-local.md). The manual fallback.
 
+The pod-owned Caddy sidecar also serves the tailnet shortcut
+`http://kai-server/skillsmp/mcp`, which reverse-proxies to the same NodePort
+backend exposed at `http://kai-server:30081/mcp`.
+
 The Forgejo workflow (`.forgejo/workflows/build-publish-deploy.yml`) runs
 `test` on push to `main` and nothing else. Browser e2e and `tsc` stay on GitHub
 PR CI (`.github/workflows/action.yml`).
