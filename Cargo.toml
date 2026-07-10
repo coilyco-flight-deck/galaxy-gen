@@ -6,7 +6,7 @@ description = "{ rust => wasm => js } galaxy generation simulation"
 repository = "https://forgejo.coilysiren.me/coilyco-flight-deck/galaxy-gen"
 version = "0.0.1"
 authors = ["Kai Siren"]
-license = "AGPL"
+license = "AGPL-3.0-or-later"
 edition = "2021"
 
 [lib]
